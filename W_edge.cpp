@@ -14,18 +14,6 @@ Vector3f calculateNormal(Vector3f v0, Vector3f v1, Vector3f v2) {
 	return normal;
 }
 
-// Set the value of f to [low, high].
-float limitRange(float f, float low, float high) {
-	return f < low ? low : f > high ? high : f;
-}
-
-// get the angle between two unit vectors v1 and v2
-float getAngleUnitVectors(Vector3f v1, Vector3f v2) {
-	float cosa = v1.dot(v2);
-	cosa = limitRange(cosa, -1.0f, 1.0f);
-	return acos(cosa);
-}
-
 // Pair this W_edge with its left W_edge.
 void W_edge::PairLeftW_edge(W_edge *leftW_edge) {
 	leftW_edge->left = right;
@@ -35,81 +23,6 @@ void W_edge::PairLeftW_edge(W_edge *leftW_edge) {
 	left = leftW_edge->right;
 	left_prev = leftW_edge->right_prev;
 	left_next = leftW_edge->right_next;
-}
-
-Matrix4f W_edge::getQ() {
-	return start->q + end->q;
-}
-
-// Calculate the target position that this edge will be collapsed to.
-Vector4f W_edge::getTargetV() {
-	Matrix4f q = getQ();
-	Matrix4f drv;
-	drv << q(0, 0), q(0, 1), q(0, 2), q(0, 3),
-	       q(0, 1), q(1, 1), q(1, 2), q(1, 3),
-		   q(0, 2), q(1, 2), q(2, 2), q(2, 3),
-		   0, 0, 0, 1;
-	Matrix4f drv_inv = drv.inverse();
-
-	if (drv_inv.hasNaN()) {
-		Vector4f sp = Vector4f(start->p.x(), start->p.y(), start->p.z(), 1.0f);
-		Vector4f ep = Vector4f(end->p.x(), end->p.y(), end->p.z(), 1.0f);
-		Vector4f mp = sp * 0.5f + ep * 0.5f;
-		float se = sp.transpose() * q * sp;
-		float ee = ep.transpose() * q * ep;
-		float me = mp.transpose() * q * mp;
-
-		if (se < ee && se < me) {
-			return sp;
-		} else if (ee < se && ee < me) {
-			return ep;
-		} else {
-			return mp;
-		}
-	} else {
-		return drv_inv * Vector4f(0, 0, 0, 1);
-	}
-}
-
-// Mark this W_edge as null. For simplicity, only
-// start and end are set to null.
-void W_edge::toNull() {
-	start = NULL;
-	end = NULL;
-}
-
-// Check if this W_edge is null.
-bool W_edge::isNull() {
-	if (start == NULL && end == NULL) {
-		return true;
-	} else if (start != NULL && end != NULL) {
-		return false;
-	} else {
-		throw "Invalid W_edge state. start and end must be both null, or not null.";
-	}
-}
-
-// Detect if fold over will occur by collapsing this edge
-bool W_edge::detectFoldOver() {
-	Vector3f vt = getTargetV().head(3);
-
-	vector<Face*> startFaces = start->getFaces();
-	for (auto f : startFaces) {
-		if (f != left && f != right
-		&& f->detectFoldOver(start, vt)) {
-			return true;
-		}
-	}
-
-	vector<Face*> endFaces = end->getFaces();
-	for (auto f : endFaces) {
-		if (f != left && f != right
-		&& f->detectFoldOver(end, vt)) {
-			return true;
-		}
-	}
-
-	return false;
 }
 
 vector<Face*> Vertex::getFaces() {
@@ -182,15 +95,6 @@ int Vertex::countJointNeighbourVertices(Vertex* v2) {
 	return count;
 }
 
-// Set the initial value of Q
-void Vertex::setInitialQ() {
-	q = Matrix4f::Zero();
-	vector<Face*> faces = getFaces();
-	for (auto f : faces) {
-		q += f->getK_p();
-	}
-}
-
 // Number of faces at Vertex v
 int Vertex::countFaces() {
 	return (int)getFaces().size();
@@ -227,28 +131,4 @@ vector<Vertex*> Face::getVertices() {
 Vector3f Face::getNormal() {
 	vector<Vertex*> vertices = getVertices();
 	return calculateNormal(vertices[0]->p, vertices[1]->p, vertices[2]->p);
-}
-
-// Get the new normal for this face when Vertex v moves to newP
-Vector3f Face::getNewNormal(Vertex* v, Vector3f newP) {
-	vector<Vertex*> vertices = getVertices();
-	Vector3f v0 = vertices[0] == v ? newP : vertices[0]->p;
-	Vector3f v1 = vertices[1] == v ? newP : vertices[1]->p;
-	Vector3f v2 = vertices[2] == v ? newP : vertices[2]->p;
-	return calculateNormal(v0, v1, v2);
-}
-
-bool Face::detectFoldOver(Vertex* v, Vector3f newP) {
-	Vector3f n1 = getNormal();
-	Vector3f n2 = getNewNormal(v, newP);
-	float a = getAngleUnitVectors(n1, n2);
-	return a > PI / 2 ? true : false;
-}
-
-Matrix4f Face::getK_p() {
-	vector<Vertex*> vertices = getVertices();
-	Vector3f normal = calculateNormal(vertices[0]->p, vertices[1]->p, vertices[2]->p);
-	float d = (Vector3f::Zero() - vertices[0]->p).dot(normal);
-	Vector4f p = Vector4f(normal.x(), normal.y(), normal.z(), d);
-	return p * p.transpose();
 }
