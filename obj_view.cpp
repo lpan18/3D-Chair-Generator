@@ -62,8 +62,6 @@
 #endif
 
 #include "Mesh.h"
-#include "MeshSd.h"
-#include "MeshMcd.h"
 
 using std::cout;
 using std::cerr;
@@ -126,57 +124,6 @@ public:
     void loadObj(string fileName) {
         delete mMesh;
         mMesh = new Mesh(fileName);
-
-        positions = mMesh->getPositions();
-        normals = mMesh->getNormals(&positions);
-        smoothNormals = mMesh->getSmoothNormals(&normals);
-        colors = mMesh->getColors();
-    }
-
-    // method to load obj (sdLevel is the step of subdivision)
-    void loadObjSd(string fileName, int sdLevel = 0, int sdMode = -1) {
-        delete mMesh;
-        mMesh = new Mesh(fileName);
-
-        if(sdLevel != 0){
-            if (sdMode == 0){
-                // Loop subdivision
-                for (int i = 0; i < sdLevel; i++) {
-                    ObjBuffer buffer = ((MeshSd*)mMesh)->sdLoop();
-                    delete mMesh;
-                    mMesh = new Mesh(buffer);
-                }
-            } else if(sdMode == 1){
-                // Butterfly subdivision
-                for (int i = 0; i < sdLevel; i++) {
-                    ObjBuffer buffer = ((MeshSd*)mMesh)->sdBtfl();
-                    delete mMesh;
-                    mMesh = new Mesh(buffer);
-                }
-            }
-        }
-
-        positions = mMesh->getPositions();
-        normals = mMesh->getNormals(&positions);
-        smoothNormals = mMesh->getSmoothNormals(&normals);
-        colors = mMesh->getColors();
-    }
-
-    // method to load obj (k is the number of multiple choices; countCollapse is the
-    // total count of edge collapses)
-    void loadObjMcd(string fileName, int k, int countCollapse) {
-        delete mMesh;
-        mMesh = new Mesh(fileName);
-        
-        if (k > mMesh->getVertexCount()) {
-            cout << "The value of k " << k << " is too big." << endl;
-        } else if (countCollapse > mMesh->getVertexCount()) {
-            cout << "The number of edges to collapse " << countCollapse << " is too big." << endl;
-        } else {
-            ObjBuffer buffer = ((MeshMcd*)mMesh)->mcd(k, countCollapse);
-            delete mMesh;
-            mMesh = new Mesh(buffer);
-        }
 
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);
@@ -268,7 +215,7 @@ private:
 
 class ObjViewApp : public nanogui::Screen {
 public:
-    ObjViewApp() : nanogui::Screen(Eigen::Vector2i(1100, 700), "Assignment 2", false) {
+    ObjViewApp() : nanogui::Screen(Eigen::Vector2i(1000, 600), "Chair Modeling", false) {
         using namespace nanogui;
 
 	    // Create a window context in which we will render the OpenGL canvas
@@ -298,39 +245,6 @@ public:
         saveBtn->setCallback([&] {
             string fileName = file_dialog({ {"obj", "obj file"} }, true);
             mCanvas->writeObj(fileName);
-        });
-
-        // Subdivision
-        new Label(anotherWindow, "Subdivision Option", "sans-bold", 20);
-        ComboBox *comboSd = new ComboBox(anotherWindow, { "Loop", "Butterfly" } );
-        comboSd->setCallback([&](int value) {
-            sdMode = value;
-        });
-
-        // Subdivision panel
-	    Widget *panelSdLevel = new Widget(anotherWindow);
-        panelSdLevel->setLayout(new BoxLayout(Orientation::Horizontal,
-                                        Alignment::Middle, 0, 2));
-        // Initiate subdivision slider
-        Slider *sldSdLevel = new Slider(panelSdLevel);
-        sldSdLevel->setValue(0.0f);
-        sldSdLevel->setFixedWidth(220);
-        TextBox *sldSdLevelTxt = new TextBox(panelSdLevel);
-        sldSdLevelTxt->setFixedSize(Vector2i(60, 25));
-        sldSdLevelTxt->setValue("0");
-        sldSdLevelTxt->setUnits(" Step");
-        sldSdLevelTxt->setFixedSize(Vector2i(60,25));
-        sldSdLevelTxt->setFontSize(20);
-        sldSdLevelTxt->setAlignment(TextBox::Alignment::Right);
-
-        sldSdLevel->setCallback([&, sldSdLevelTxt](float value) {
-            sdLevel = (int)round(value * 5);
-            sldSdLevelTxt->setValue(std::to_string(sdLevel));
-        });
-
-        Button *btnRunSd = new Button(anotherWindow, "Run Subdivision");
-        btnRunSd->setCallback([&] {
-            mCanvas->loadObjSd(fileName, sdLevel, sdMode);
         });
 
         // Rotation panel
@@ -465,39 +379,6 @@ public:
                 if(result == 1){
                     nanogui::shutdown();
                 }});
-        });
-
-        // Create another window and insert widgets into it
-	    Window *mcdWindow = new Window(this, "Mesh Decimation");
-        mcdWindow->setPosition(Vector2i(865, 15));
-        mcdWindow->setLayout(new GroupLayout());
-
-	    Widget *panelK = new Widget(mcdWindow);
-        panelK->setLayout(new BoxLayout(Orientation::Horizontal,
-                                        Alignment::Middle, 0, 10));
-        Label *lbK = new Label(panelK, "k");
-        lbK->setFixedSize(Vector2i(75, 20));
-        TextBox *txtK = new TextBox(panelK);
-        txtK->setFixedSize(Vector2i(90, 25));
-        txtK->setEditable(true);
-        txtK->setValue("8");
-
-        Widget *panelN = new Widget(mcdWindow);
-        panelN->setLayout(new BoxLayout(Orientation::Horizontal,
-                                        Alignment::Middle, 0, 10));
-        Label *lbN = new Label(panelN, "N to Collapse");
-        lbN->setFixedSize(Vector2i(75, 20));
-        TextBox *txtN = new TextBox(panelN);
-        txtN->setFixedSize(Vector2i(90, 25));
-        txtN->setEditable(true);
-        txtN->setValue("100");
-
-        // Edge collapses
-        Button *mcdButton  = new Button(mcdWindow, "Decimate");
-        mcdButton->setCallback([&, txtK, txtN] {
-            int k = stoi(txtK->value());
-            int n = stoi(txtN->value());
-            mCanvas->loadObjMcd(fileName, k, n);
         });
 
 	    //Method to assemble the interface defined before it is called
