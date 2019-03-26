@@ -112,6 +112,8 @@ public:
         // This the light origin position in your environment, which is totally arbitrary
         // however it is better if it is behind the observer
         mShader.setUniform("LightPosition_worldspace", Vector3f(2,-6,-4));
+
+        setIsometricView();
     }
 
     //flush data on call
@@ -139,20 +141,34 @@ public:
         }
     }
 
-    // Method to update the rotation on each axis
-    void setRotation(nanogui::Vector3f vRotation) {
-        mRotation = vRotation;
+    void setFrontView() {
+        mMVP << -0.5, 0, 0, 0,
+                0, 0, 0.5, 0,
+                0, 0.5, 0, 0,
+                0, 0, 0, 1;
     }
 
-    // Method to update the rotation on each axis
-    void setTranslation(nanogui::Vector3f vTranslation) {
-        mTranslation = vTranslation;
+    void setSideView() {
+        mMVP << 0, -0.5, 0, 0,
+                0, 0, 0.5, 0,
+                -0.5, 0, 0, 0,
+                0, 0, 0, 1;
     }
-    
-    // Method to set the zooming 
-    void setZooming(float fZooming) {
-        mZooming = fZooming;
+
+    void setTopView() {
+        mMVP << -0.5, 0, 0, 0,
+                0, 0.5, 0, 0,
+                0, 0, -0.5, 0,
+                0, 0, 0, 1;
     }
+
+    void setIsometricView() {
+        mMVP << -0.379379, -0.325686, -1.49012e-08, 0,
+                -0.0816341, 0.0950923, 0.484039, 0,
+                -0.315289, 0.367268, -0.125326, 0,
+                0, 0, 0, 1;
+    }
+
     // Method to set shading mode
     void setShadingMode(float fShadingMode) {
         mShadingMode = fShadingMode;
@@ -171,17 +187,9 @@ public:
         mShader.uploadAttrib("vertexPosition_modelspace", positions);
         mShader.uploadAttrib("color", colors);
 	    mShader.uploadAttrib("vertexNormal_modelspace", shadingNormal);
-	
-        //This is a way to perform a simple rotation using a 4x4 rotation matrix represented by rmat
-	    //mvp stands for ModelViewProjection matrix
-        Matrix4f mvp;
-        mvp.setIdentity();
-        mvp.topLeftCorner<3,3>() = Eigen::Matrix3f(Eigen::AngleAxisf(mRotation[0], Vector3f::UnitX()) *
-                                                   Eigen::AngleAxisf(mRotation[1],  Vector3f::UnitY()) *
-                                                   Eigen::AngleAxisf(mRotation[2], Vector3f::UnitZ())) * mZooming;
-        mvp.topRightCorner<3,1>() = Eigen::Vector3f(mTranslation[0],mTranslation[1],mTranslation[2])* 0.25f;
-       
-        mShader.setUniform("MVP", mvp);
+
+        // Reset MVP
+        mShader.setUniform("MVP", mMVP);
 
 	    // If enabled, does depth comparisons and update the depth buffer.
 	    // Avoid changing if you are unsure of what this means.
@@ -201,17 +209,14 @@ public:
 //Need to be updated if a interface element is interacting with something that is inside the scope of MyGLCanvas
 private:
     Mesh *mMesh = NULL;
+    Matrix4f mMVP;
     MatrixXf positions;
     MatrixXf normals;
     MatrixXf smoothNormals;
     MatrixXf colors;
     nanogui::GLShader mShader;
-    Eigen::Vector3f mRotation;
-    Eigen::Vector3f mTranslation;
-    float mZooming = 0.5f;
     int mShadingMode = 0;
 };
-
 
 class ObjViewApp : public nanogui::Screen {
 public:
@@ -247,117 +252,30 @@ public:
             mCanvas->writeObj(fileName);
         });
 
-        // Rotation panel
-        new Label(anotherWindow, "Rotation", "sans-bold", 20);
-	    Widget *panelRot = new Widget(anotherWindow);
-        panelRot->setLayout(new BoxLayout(Orientation::Horizontal,
+        new Label(anotherWindow, "Views", "sans-bold", 20);
+        Widget *panelViews = new Widget(anotherWindow);
+        panelViews->setLayout(new BoxLayout(Orientation::Horizontal,
                                        Alignment::Middle, 0, 2));
-
-        // Initiate rotation sliders
-	    Slider *rotSlider_X = new Slider(panelRot);
-	    new Label(panelRot, "X");
-        Slider *rotSlider_Y = new Slider(panelRot);
-	    new Label(panelRot, "Y");
-	    Slider *rotSlider_Z = new Slider(panelRot);
-	    new Label(panelRot, "Z");
-
-        // Rotation along X axis
-        rotSlider_X->setValue(0.5f);
-        rotSlider_X->setFixedWidth(80);
-        rotSlider_X->setCallback([&, rotSlider_Y, rotSlider_Z](float value) {
-	        float radians_X = (value - 0.5f)*2*2*M_PI;
-            float radians_Y = (rotSlider_Y->value() - 0.5f)*2*2*M_PI;
-            float radians_Z = (rotSlider_Z->value() - 0.5f)*2*2*M_PI;          
-	        mCanvas->setRotation(nanogui::Vector3f(radians_X, radians_Y, radians_Z));
+        
+        Button *frontView = new Button(panelViews, "Front");
+        frontView->setCallback([&] {
+            mCanvas->setFrontView();
         });
 
-	    // Rotation along Y axis
-        rotSlider_Y->setValue(0.5f);
-        rotSlider_Y->setFixedWidth(80);
-        rotSlider_Y->setCallback([&, rotSlider_X, rotSlider_Z](float value) {
-            float radians_X = (rotSlider_X->value() - 0.5f)*2*2*M_PI;
-	        float radians_Y = (value - 0.5f)*2*2*M_PI;
-            float radians_Z = (rotSlider_Z->value() - 0.5f)*2*2*M_PI;
-	        mCanvas->setRotation(nanogui::Vector3f(radians_X, radians_Y, radians_Z));
+        Button *sideView = new Button(panelViews, "Side");
+        sideView->setCallback([&] {
+            mCanvas->setSideView();
         });
 
-	    // Rotation along Z axis
-        rotSlider_Z->setValue(0.5f);
-        rotSlider_Z->setFixedWidth(80);
-        rotSlider_Z->setCallback([&, rotSlider_X, rotSlider_Y](float value) {
-            float radians_X = (rotSlider_X->value() - 0.5f)*2*2*M_PI;
-            float radians_Y = (rotSlider_Y->value() - 0.5f)*2*2*M_PI;
-	        float radians_Z = (value - 0.5f)*2*2*M_PI;
-	        mCanvas->setRotation(nanogui::Vector3f(radians_X, radians_Y, radians_Z));
+        Button *topView = new Button(panelViews, "Top");
+        topView->setCallback([&] {
+            mCanvas->setTopView();
         });
 
-        // Translation panel
-        new Label(anotherWindow, "Translation", "sans-bold", 20);
-	    Widget *panelTrans = new Widget(anotherWindow);
-        panelTrans->setLayout(new BoxLayout(Orientation::Horizontal,
-                                       Alignment::Middle, 0, 2));
-
-        // Initiate translation sliders
-	    Slider *tranSlider_X = new Slider(panelTrans);
-	    new Label(panelTrans, "X");
-        Slider *tranSlider_Y = new Slider(panelTrans);
-	    new Label(panelTrans, "Y");
-	    Slider *tranSlider_Z = new Slider(panelTrans);
-	    new Label(panelTrans, "Z");
-
-        //Translation along X axis
-        tranSlider_X->setValue(0.5f);
-        tranSlider_X->setFixedWidth(80);
-        tranSlider_X->setCallback([&, tranSlider_Y, tranSlider_Z](float value) {
-            float trans_X = (value - 0.5f)*2*4;
-            float trans_Y = (tranSlider_Y->value() - 0.5f)*2*4;
-            float trans_Z = (tranSlider_Z->value() - 0.5f)*2*4;          
-	        mCanvas->setTranslation(nanogui::Vector3f(trans_X, trans_Y, trans_Z));
+        Button *isometricView = new Button(panelViews, "Isometric");
+        isometricView->setCallback([&] {
+            mCanvas->setIsometricView();
         });
-
-        //Translation along Y axis
-        tranSlider_Y->setValue(0.5f);
-        tranSlider_Y->setFixedWidth(80);
-        tranSlider_Y->setCallback([&, tranSlider_X, tranSlider_Z](float value) {
-            float trans_X = (tranSlider_X->value() - 0.5f)*2*4;
-            float trans_Y = (value - 0.5f)*2*4;
-            float trans_Z = (tranSlider_Z->value() - 0.5f)*2*4;          
-	        mCanvas->setTranslation(nanogui::Vector3f(trans_X, trans_Y, trans_Z));
-        });
-
-        //Translation along Z axis
-        tranSlider_Z->setValue(0.5f);
-        tranSlider_Z->setFixedWidth(80);
-        tranSlider_Z->setCallback([&, tranSlider_X, tranSlider_Y](float value) {
-            float trans_X = (tranSlider_X->value() - 0.5f)*2*4; 
-            float trans_Y = (tranSlider_Y->value() - 0.5f)*2*4;
-            float trans_Z = (value - 0.5f)*2*4;        
-	        mCanvas->setTranslation(nanogui::Vector3f(trans_X, trans_Y, trans_Z));
-        });
-
-        mCanvas->setTranslation(nanogui::Vector3f(0, 0, 0));
-
-        // Zomming panel
-	    new Label(anotherWindow, "Zoom", "sans-bold", 20);
-	    Widget *panelZoom = new Widget(anotherWindow);
-        panelZoom->setLayout(new BoxLayout(Orientation::Horizontal,
-                                       Alignment::Middle, 0, 2));
-
-        // Initiate zooming slider
-        Slider *zoom = new Slider(panelZoom);
-        zoom->setValue(0.5f);
-        zoom->setFixedWidth(150);
-        TextBox *zoomTxt = new TextBox(panelZoom);
-        zoomTxt->setFixedSize(Vector2i(60, 25));
-        zoomTxt->setValue("50");
-        zoomTxt->setUnits("%");
-        zoom->setCallback([&, zoomTxt](float value) {
-	        mCanvas->setZooming(value);
-            zoomTxt->setValue(std::to_string((int) (value * 100)));
-        });
-        zoomTxt->setFixedSize(Vector2i(60,25));
-        zoomTxt->setFontSize(20);
-        zoomTxt->setAlignment(TextBox::Alignment::Right);
 
     	// Shading mode
         new Label(anotherWindow, "Shading Mode", "sans-bold", 20);
