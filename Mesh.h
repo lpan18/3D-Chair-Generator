@@ -12,8 +12,9 @@ using Eigen::MatrixXf;
 #ifndef MESH_H
 #define MESH_H
 
-struct ObjGroup
+class ObjGroup
 {
+public:
 	string name;
 	int vStart;
 	int vEnd;
@@ -22,8 +23,9 @@ struct ObjGroup
 };
 
 // An in-memory representation of obj file
-struct ObjBuffer
+class ObjBuffer
 {
+public:
 	int nVertices;
 	int mFaces;
 	Vector3f center;
@@ -31,6 +33,7 @@ struct ObjBuffer
 
 	Vector3f* vertices;
 	Vector3i* faces;
+	vector<ObjGroup> groups;
 
     // Read obj file
 	static ObjBuffer readObjFile(string filename);

@@ -49,7 +49,7 @@ ObjBuffer ObjBuffer::readObjFile(string filename) {
 	buffer.vertices = new Vector3f[buffer.nVertices];
 	buffer.faces = new Vector3i[buffer.mFaces];
 
-	// read the file again and initialize vertices, faces, and w_edges.
+	// read the file again.
 	ifstream fin1(filename);
 	int vi = 0, fi = 0;
 	float x, y, z;
@@ -69,6 +69,16 @@ ObjBuffer ObjBuffer::readObjFile(string filename) {
 				iss >> v1 >> v2 >> v3;
 				buffer.faces[fi] = Vector3i(v1, v2, v3);
 				fi++;
+			} else if (line.rfind("# Starting mesh", 0) == 0) {
+				ObjGroup group;
+				group.name = line.substr(16, line.size() - 17);
+				group.vStart = vi;
+				buffer.groups.push_back(group);
+			} else if (line.rfind("g ", 0) == 0) {
+				buffer.groups.back().vEnd = vi - 1;
+				buffer.groups.back().fStart = fi;
+			} else if (line.rfind("# End of mesh", 0) == 0) {
+				buffer.groups.back().fEnd = fi - 1;
 			}
 		}
 	}
