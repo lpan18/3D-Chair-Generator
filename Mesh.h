@@ -1,13 +1,13 @@
-#include <nanogui/common.h>
+#include <Eigen/Core>
 #include <string>
 #include "W_edge.h"
 
 using namespace std;
-using nanogui::Vector3f;
-using nanogui::Vector3i;
-using nanogui::Vector4f;
-using nanogui::Matrix4f;
-using nanogui::MatrixXf;
+using Eigen::Vector3f;
+using Eigen::Vector3i;
+using Eigen::Vector4f;
+using Eigen::Matrix4f;
+using Eigen::MatrixXf;
 
 #ifndef MESH_H
 #define MESH_H
