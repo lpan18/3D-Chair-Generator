@@ -125,6 +125,9 @@ public:
     // method to load obj
     void loadObj(string fileName) {
         ObjBuffer obj = ObjBuffer::readObjFile(fileName);
+        // Temp
+        obj = obj.getGroup("backrest");
+        // Temp
         delete mMesh;
         mMesh = new Mesh(obj);
 

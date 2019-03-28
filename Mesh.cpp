@@ -89,6 +89,47 @@ ObjBuffer ObjBuffer::readObjFile(string filename) {
 	return buffer;
 }
 
+ObjBuffer ObjBuffer::getGroup(string groupName) {
+	ObjBuffer buffer;
+	buffer.center = center;
+	buffer.scale = scale;
+
+	// First, get vCount and fCount and initialize buffer
+	int vCount = 0;
+	int fCount = 0;
+	for (auto g : groups) {
+		if (g.name.rfind(groupName, 0) == 0) {
+			vCount += g.vEnd - g.vStart + 1;
+			fCount += g.fEnd - g.fStart + 1;
+		}
+	}
+
+	buffer.nVertices = vCount;
+	buffer.mFaces = fCount;
+	buffer.vertices = new Vector3f[vCount];
+	buffer.faces = new Vector3i[fCount];
+
+	// Iterate groups again for vertices and faces
+	int vi = 0;
+	int fi = 0;
+	for (auto g : groups) {
+		if (g.name.rfind(groupName, 0) == 0) {
+			int viOffset = g.vStart - vi;
+			for (int i = g.vStart; i <= g.vEnd; i++) {
+				buffer.vertices[vi] = vertices[i];
+				vi++;
+			}
+
+			for (int i = g.fStart; i <= g.fEnd; i++) {
+				buffer.faces[fi] = faces[i] - Vector3i(viOffset, viOffset, viOffset);
+				fi++;
+			}
+		}
+	}
+
+	return buffer;
+}
+
 void ObjBuffer::setCenterAndScale() {
 	float maxX, maxY, maxZ;
 	float minX, minY, minZ;

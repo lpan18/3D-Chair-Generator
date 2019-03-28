@@ -37,6 +37,7 @@ public:
 
     // Read obj file
 	static ObjBuffer readObjFile(string filename);
+	ObjBuffer getGroup(string groupName);
 	void setCenterAndScale();
 };
 
