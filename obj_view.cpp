@@ -124,8 +124,9 @@ public:
 
     // method to load obj
     void loadObj(string fileName) {
+        ObjBuffer obj = ObjBuffer::readObjFile(fileName);
         delete mMesh;
-        mMesh = new Mesh(fileName);
+        mMesh = new Mesh(obj);
 
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);

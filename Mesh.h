@@ -12,6 +12,15 @@ using Eigen::MatrixXf;
 #ifndef MESH_H
 #define MESH_H
 
+struct ObjGroup
+{
+	string name;
+	int vStart;
+	int vEnd;
+	int fStart;
+	int fEnd;
+};
+
 // An in-memory representation of obj file
 struct ObjBuffer
 {
@@ -23,6 +32,8 @@ struct ObjBuffer
 	Vector3f* vertices;
 	Vector3i* faces;
 
+    // Read obj file
+	static ObjBuffer readObjFile(string filename);
 	void setCenterAndScale();
 };
 
@@ -30,13 +41,6 @@ struct ObjBuffer
 class Mesh
 {
 public:
-    // Regular constructor
-	Mesh(string fileName) {
-		ObjBuffer buffer = readObj(fileName);
-		readObjBuffer(buffer);
-		constructLeft();
-	}
-	// Constructor used in subdivision and mesh decimation
 	Mesh(ObjBuffer buffer) {
 		readObjBuffer(buffer);
 		constructLeft();
@@ -80,8 +84,6 @@ protected:
 	// Scale to be multiplied to the original mesh
 	float scale;
 	
-	// Read obj file
-	ObjBuffer readObj(string filename);
 	// Read obj buffer
 	void readObjBuffer(ObjBuffer buffer);
 	// Fill in left parameters (left_prev, left_next, and left) of W_edge

@@ -25,6 +25,60 @@ bool sortByStartVertexThenByEndVertex(const W_edge* edge1, const W_edge* edge2) 
 		return edge1->end < edge2->end;
 }
 
+// Read Obj file to ObjBuffer
+ObjBuffer ObjBuffer::readObjFile(string filename) {
+	string line;
+	int vn = 0, fm = 0;
+
+	// Read the file and get the numbers of vertices and faces.
+	ifstream fin(filename);
+	while (getline(fin, line)) {
+		if (line.length() > 1) {
+			if (line[0] == 'v' && line[1] == ' ') {
+				vn++;
+			}
+			else if (line[0] == 'f' && line[1] == ' ') {
+				fm++;
+			}
+		}
+	}
+
+	ObjBuffer buffer;
+	buffer.nVertices = vn;
+	buffer.mFaces = fm;
+	buffer.vertices = new Vector3f[buffer.nVertices];
+	buffer.faces = new Vector3i[buffer.mFaces];
+
+	// read the file again and initialize vertices, faces, and w_edges.
+	ifstream fin1(filename);
+	int vi = 0, fi = 0;
+	float x, y, z;
+	int v1, v2, v3;
+
+	while (getline(fin1, line)) {
+		if (line.length() > 0) {
+			if (line[0] == 'v' && line[1] == ' ') {
+				string str = line.substr(2, line.size() - 1);
+				istringstream iss(str);
+				iss >> x >> y >> z;
+				buffer.vertices[vi] = Vector3f(x, y, z);
+				vi++;
+			} else if (line[0] == 'f' && line[1] == ' ') {
+				string str = line.substr(2, line.size() - 1);
+				istringstream iss(str);
+				iss >> v1 >> v2 >> v3;
+				buffer.faces[fi] = Vector3i(v1, v2, v3);
+				fi++;
+			}
+		}
+	}
+
+	// Set Center and Scale
+	buffer.setCenterAndScale();
+
+	return buffer;
+}
+
 void ObjBuffer::setCenterAndScale() {
 	float maxX, maxY, maxZ;
 	float minX, minY, minZ;
@@ -126,60 +180,6 @@ void Mesh::writeObj(string fileName) {
 		outputFile << ss.str();
 		outputFile.close();
 	}
-}
-
-// Read Obj file to ObjBuffer
-ObjBuffer Mesh::readObj(string filename) {
-	string line;
-	int vn = 0, fm = 0;
-
-	// Read the file and get the numbers of vertices and faces.
-	ifstream fin(filename);
-	while (getline(fin, line)) {
-		if (line.length() > 1) {
-			if (line[0] == 'v' && line[1] == ' ') {
-				vn++;
-			}
-			else if (line[0] == 'f' && line[1] == ' ') {
-				fm++;
-			}
-		}
-	}
-
-	ObjBuffer buffer;
-	buffer.nVertices = vn;
-	buffer.mFaces = fm;
-	buffer.vertices = new Vector3f[buffer.nVertices];
-	buffer.faces = new Vector3i[buffer.mFaces];
-
-	// read the file again and initialize vertices, faces, and w_edges.
-	ifstream fin1(filename);
-	int vi = 0, fi = 0;
-	float x, y, z;
-	int v1, v2, v3;
-
-	while (getline(fin1, line)) {
-		if (line.length() > 0) {
-			if (line[0] == 'v' && line[1] == ' ') {
-				string str = line.substr(2, line.size() - 1);
-				istringstream iss(str);
-				iss >> x >> y >> z;
-				buffer.vertices[vi] = Vector3f(x, y, z);
-				vi++;
-			} else if (line[0] == 'f' && line[1] == ' ') {
-				string str = line.substr(2, line.size() - 1);
-				istringstream iss(str);
-				iss >> v1 >> v2 >> v3;
-				buffer.faces[fi] = Vector3i(v1, v2, v3);
-				fi++;
-			}
-		}
-	}
-
-	// Set Center and Scale
-	buffer.setCenterAndScale();
-
-	return buffer;
 }
 
 // Read obj buffer
