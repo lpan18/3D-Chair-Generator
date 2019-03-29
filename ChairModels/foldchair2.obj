@@ -1485,7 +1485,7 @@ f 487 468 467
 f 466 487 467 
 # End of mesh Seat
 
-# Starting mesh ConnectorLeft
+# Starting mesh leg_ConnectorLeft
 v 0.323017 0.093687 0.586707
 v 0.322914 0.099547 0.589193
 v 0.322957 0.097131 0.586736
@@ -1526,7 +1526,7 @@ v 0.320604 0.10161 0.593547
 v 0.322316 0.00358 0.547516
 v 0.324627 0.00147 0.548381
 v 0.324627 0.001441 0.551831
-g ConnectorLeft
+g leg_ConnectorLeft
 f 497 496 498 
 f 500 499 501 
 f 503 502 504 
@@ -1603,9 +1603,9 @@ f 517 506 522
 f 508 506 517 
 f 511 508 517 
 f 517 516 511 
-# End of mesh ConnectorLeft
+# End of mesh leg_ConnectorLeft
 
-# Starting mesh BarLeft
+# Starting mesh back_BarLeft
 v 0.283861 0.0915 0.666095
 v 0.287142 0.094331 0.664249
 v 0.283276 0.172691 0.778405
@@ -1753,7 +1753,7 @@ v 0.289462 0.152113 0.793634
 v 0.298586 0.150592 0.795476
 v 0.30764 0.153039 0.794484
 v 0.314199 0.158795 0.790926
-g BarLeft
+g back_BarLeft
 f 537 536 538 
 f 540 539 541 
 f 542 541 543 
@@ -2044,7 +2044,7 @@ f 680 556 654
 f 681 557 660 
 f 682 553 666 
 f 609 606 672 
-# End of mesh BarLeft
+# End of mesh back_BarLeft
 
 # Starting mesh LegBackLeft
 v 0.294168 0.403704 -0.020715
@@ -2877,7 +2877,7 @@ f 895 945 790
 f 908 946 791 
 # End of mesh LegFrontLeft
 
-# Starting mesh ConnectorRight
+# Starting mesh leg_ConnectorRight
 v -0.323017 0.0936866 0.586707
 v -0.322914 0.099547 0.589193
 v -0.322957 0.0971312 0.586736
@@ -2918,7 +2918,7 @@ v -0.320604 0.10161 0.593547
 v -0.322316 0.00357996 0.547516
 v -0.324627 0.00146986 0.548381
 v -0.324627 0.00144073 0.551831
-g ConnectorRight
+g leg_ConnectorRight
 f 960 961 962 
 f 963 964 965 
 f 966 967 968 
@@ -2995,9 +2995,9 @@ f 970 981 986
 f 970 972 981 
 f 972 975 981 
 f 980 981 975 
-# End of mesh ConnectorRight
+# End of mesh leg_ConnectorRight
 
-# Starting mesh BarRight
+# Starting mesh back_BarRight
 v -0.283861 0.0915001 0.666095
 v -0.287142 0.0943312 0.664249
 v -0.283276 0.172691 0.778405
@@ -3145,7 +3145,7 @@ v -0.289462 0.152113 0.793634
 v -0.298586 0.150592 0.795476
 v -0.30764 0.153039 0.794484
 v -0.314199 0.158795 0.790926
-g BarRight
+g back_BarRight
 f 1000 1001 1002 
 f 1003 1004 1005 
 f 1005 1006 1007 
@@ -3436,7 +3436,7 @@ f 1020 1144 1118
 f 1021 1145 1124 
 f 1017 1146 1130 
 f 1070 1073 1136 
-# End of mesh BarRight
+# End of mesh back_BarRight
 
 # Starting mesh LegBackRight
 v -0.294168 0.403704 -0.0207149
@@ -4269,7 +4269,7 @@ f 1409 1359 1254
 f 1410 1372 1255 
 # End of mesh LegFrontRight
 
-# Starting mesh UnderbarBack
+# Starting mesh leg_UnderbarBack
 v 0.299879 0.28832 0.229724
 v 0.299879 0.27532 0.229724
 v 0.299879 0.276104 0.234171
@@ -4380,7 +4380,7 @@ v -0.300121 0.28182 0.218466
 v -0.300121 0.278361 0.221368
 v -0.300121 0.276104 0.225278
 v -0.300121 0.28832 0.229724
-g UnderbarBack
+g leg_UnderbarBack
 f 1424 1426 1425 
 f 1424 1427 1426 
 f 1424 1428 1427 
@@ -4597,5 +4597,5 @@ f 1533 1529 1530
 f 1533 1530 1531 
 f 1533 1531 1532 
 f 1533 1532 1515 
-# End of mesh UnderbarBack
+# End of mesh leg_UnderbarBack
 

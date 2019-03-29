@@ -1,6 +1,6 @@
 # Exported graph model [ChairFilm] by TopoBlender
 
-# Starting mesh BarLeft
+# Starting mesh back_BarLeft
 v 0.303135 0.19373 1.09162
 v 0.303951 0.191731 1.09405
 v 0.299493 0.202663 0.71714
@@ -199,7 +199,7 @@ v 0.305214 0.19995 0.912469
 v 0.305214 0.198612 0.913916
 v 0.305214 0.197218 0.915227
 v 0.305214 0.197218 1.08711
-g BarLeft
+g back_BarLeft
 f 110 87 188 
 f 188 189 110 
 f 102 94 93 
@@ -592,9 +592,9 @@ f 96 83 95
 f 83 96 84 
 f 85 84 96 
 f 84 85 73 
-# End of mesh BarLeft
+# End of mesh back_BarLeft
 
-# Starting mesh BarRight
+# Starting mesh back_BarRight
 v -0.310339 0.185643 1.08711
 v -0.306335 0.185061 1.09162
 v -0.304792 0.186571 1.09405
@@ -793,7 +793,7 @@ v -0.314008 0.184166 0.910748
 v -0.312873 0.184623 0.912469
 v -0.311633 0.185122 0.913916
 v -0.310339 0.185643 0.915227
-g BarRight
+g back_BarRight
 f 249 226 327 
 f 327 328 249 
 f 241 233 232 
@@ -1186,7 +1186,7 @@ f 235 222 234
 f 222 235 223 
 f 224 223 235 
 f 223 224 212 
-# End of mesh BarRight
+# End of mesh back_BarRight
 
 # Starting mesh ArmRestLeft
 v 0.266904 -0.233728 0.899047
@@ -3960,7 +3960,7 @@ f 1309 1307 1312
 f 1289 1312 1307 
 # End of mesh LegBackRight
 
-# Starting mesh BottomBarFront
+# Starting mesh leg_BottomBarFront
 v -0.140558 -0.224606 0.18782
 v -0.131747 -0.224606 0.18782
 v -0.122936 -0.224606 0.18782
@@ -4189,7 +4189,7 @@ v -0.175801 -0.224606 0.18782
 v -0.16699 -0.224606 0.18782
 v -0.158179 -0.224606 0.18782
 v -0.149369 -0.224606 0.18782
-g BottomBarFront
+g leg_BottomBarFront
 f 1432 1431 1412 
 f 1362 1412 1431 
 f 1430 1429 1438 
@@ -4642,9 +4642,9 @@ f 1491 1440 1439
 f 1492 1440 1491 
 f 1441 1440 1492 
 f 1490 1491 1439 
-# End of mesh BottomBarFront
+# End of mesh leg_BottomBarFront
 
-# Starting mesh BottomBarBack
+# Starting mesh leg_BottomBarBack
 v -0.219805 0.183265 0.160459
 v -0.210994 0.183265 0.160459
 v -0.202183 0.183265 0.160459
@@ -4873,7 +4873,7 @@ v 0.218027 0.183265 0.184145
 v 0.218027 0.23007 0.184145
 v 0.21706 0.183265 0.185112
 v 0.21706 0.23007 0.185112
-g BottomBarBack
+g leg_BottomBarBack
 f 1770 1769 1750 
 f 1700 1750 1769 
 f 1768 1767 1776 
@@ -5326,7 +5326,7 @@ f 1601 1550 1549
 f 1602 1550 1601 
 f 1551 1550 1602 
 f 1600 1601 1549 
-# End of mesh BottomBarBack
+# End of mesh leg_BottomBarBack
 
 # Starting mesh Seat
 v -0.152844 -0.194856 0.673725

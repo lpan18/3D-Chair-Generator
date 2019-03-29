@@ -369,7 +369,7 @@ f 92 86 89
 f 87 89 86 
 # End of mesh Seat
 
-# Starting mesh BarLeft
+# Starting mesh back_BarLeft
 v 0.258065 0.262571 1.00692
 v 0.257834 0.249346 0.948867
 v 0.257627 0.237513 0.890515
@@ -442,7 +442,7 @@ v 0.259619 0.351644 1.15026
 v 0.227512 0.352204 1.15026
 v 0.258599 0.293164 1.12199
 v 0.25832 0.277179 1.06464
-g BarLeft
+g back_BarLeft
 f 144 145 146 
 f 145 147 146 
 f 148 149 150 
@@ -583,9 +583,9 @@ f 133 161 146
 f 146 147 133 
 f 163 148 151 
 f 164 163 151 
-# End of mesh BarLeft
+# End of mesh back_BarLeft
 
-# Starting mesh BarRight
+# Starting mesh back_BarRight
 v -0.207573 0.26641 0.496919
 v -0.208693 0.202252 0.476479
 v -0.239682 0.26697 0.496919
@@ -658,7 +658,7 @@ v -0.239838 0.258033 0.948867
 v -0.239607 0.271257 1.00692
 v -0.239351 0.285866 1.06464
 v -0.239073 0.301851 1.12199
-g BarRight
+g back_BarRight
 f 196 197 198 
 f 197 199 198 
 f 200 201 202 
@@ -799,7 +799,7 @@ f 257 213 198
 f 198 199 257 
 f 215 200 203 
 f 216 215 203 
-# End of mesh BarRight
+# End of mesh back_BarRight
 
 # Starting mesh LegFrontRight
 v -0.296201 -0.326032 -0.0212711
@@ -861,7 +861,7 @@ f 279 285 278
 f 286 278 285 
 # End of mesh LegFrontLeft
 
-# Starting mesh UnderbarFront
+# Starting mesh leg_UnderbarFront
 v -0.240468 -0.353102 0.314655
 v 0.237136 -0.361438 0.314655
 v -0.240468 -0.353102 0.323761
@@ -876,7 +876,7 @@ v 0.237556 -0.337357 0.314655
 v 0.237556 -0.337357 0.381432
 v -0.240048 -0.329021 0.314655
 v -0.240048 -0.329021 0.381432
-g UnderbarFront
+g leg_UnderbarFront
 f 288 289 290 
 f 291 290 289 
 f 292 290 293 
@@ -901,9 +901,9 @@ f 299 301 296
 f 297 296 301 
 f 301 299 300 
 f 298 300 299 
-# End of mesh UnderbarFront
+# End of mesh leg_UnderbarFront
 
-# Starting mesh UnderbarBack
+# Starting mesh leg_UnderbarBack
 v 0.224763 0.194685 0.381432
 v 0.225183 0.218767 0.381432
 v -0.208693 0.202252 0.381432
@@ -912,7 +912,7 @@ v 0.225183 0.218767 0.326796
 v 0.224763 0.194685 0.326796
 v -0.208273 0.226333 0.326796
 v -0.208693 0.202252 0.326796
-g UnderbarBack
+g leg_UnderbarBack
 f 302 303 304 
 f 305 304 303 
 f 306 307 308 
@@ -925,9 +925,9 @@ f 305 308 304
 f 309 304 308 
 f 304 309 302 
 f 307 302 309 
-# End of mesh UnderbarBack
+# End of mesh leg_UnderbarBack
 
-# Starting mesh UnderbarLeft
+# Starting mesh leg_UnderbarLeft
 v 0.292264 -0.308202 0.314655
 v 0.23208 0.194558 0.314655
 v 0.23208 0.194558 0.381432
@@ -943,7 +943,7 @@ v 0.290257 -0.308167 0.325278
 v 0.254244 0.194171 0.325278
 v 0.256257 0.194136 0.323761
 v 0.268089 -0.30778 0.314655
-g UnderbarLeft
+g leg_UnderbarLeft
 f 319 320 321 
 f 320 322 321 
 f 320 323 322 
@@ -970,9 +970,9 @@ f 312 315 318
 f 314 318 315 
 f 318 314 317 
 f 316 317 314 
-# End of mesh UnderbarLeft
+# End of mesh leg_UnderbarLeft
 
-# Starting mesh UnderbarRight
+# Starting mesh leg_UnderbarRight
 v -0.216007 0.202379 0.381432
 v -0.293705 -0.297974 0.381432
 v -0.293705 -0.297974 0.323761
@@ -987,7 +987,7 @@ v -0.240185 0.202802 0.381432
 v -0.269527 -0.298396 0.314655
 v -0.269527 -0.298396 0.381432
 v -0.293705 -0.297974 0.314655
-g UnderbarRight
+g leg_UnderbarRight
 f 331 332 333 
 f 334 332 335 
 f 334 333 332 
@@ -1012,7 +1012,7 @@ f 326 331 333
 f 337 326 333 
 f 337 336 325 
 f 330 325 336 
-# End of mesh UnderbarRight
+# End of mesh leg_UnderbarRight
 
 # Starting mesh BackBar
 v 0.00875897 0.239969 0.596901
@@ -1314,7 +1314,7 @@ f 416 389 391
 f 390 391 389 
 # End of mesh BackBar
 
-# Starting mesh MiddleBar02
+# Starting mesh back_MiddleBar02
 v 0.074842 0.323018 1.031
 v 0.0991851 0.32567 1.04863
 v 0.0751584 0.327349 1.04829
@@ -1353,7 +1353,7 @@ v 0.0730218 0.298225 0.913787
 v 0.0738775 0.3099 0.972543
 v 0.0978965 0.308137 0.972543
 v 0.098861 0.321254 1.031
-g MiddleBar02
+g back_MiddleBar02
 f 444 445 446 
 f 447 446 445 
 f 446 448 444 
@@ -1426,9 +1426,9 @@ f 462 445 444
 f 445 462 463 
 f 445 463 447 
 f 461 447 463 
-# End of mesh MiddleBar02
+# End of mesh back_MiddleBar02
 
-# Starting mesh MiddleBar03
+# Starting mesh back_MiddleBar03
 v 0.0210084 0.251732 0.654779
 v 0.020927 0.247063 0.596901
 v 0.045089 0.251312 0.654779
@@ -1467,7 +1467,7 @@ v 0.0222178 0.321039 1.05022
 v 0.0462989 0.320619 1.05022
 v 0.0223685 0.329655 1.04792
 v 0.0464492 0.329235 1.04792
-g MiddleBar03
+g back_MiddleBar03
 f 477 478 479 
 f 480 479 478 
 f 479 481 477 
@@ -1540,9 +1540,9 @@ f 495 496 477
 f 496 478 477 
 f 478 496 480 
 f 494 480 496 
-# End of mesh MiddleBar03
+# End of mesh back_MiddleBar03
 
-# Starting mesh MiddleBar04
+# Starting mesh back_MiddleBar04
 v -0.0267545 0.275426 0.831896
 v -0.00267387 0.275006 0.831896
 v -0.0265723 0.285861 0.890515
@@ -1581,7 +1581,7 @@ v -0.0029644 0.258357 0.713994
 v -0.0270451 0.258778 0.713994
 v -0.00283124 0.265977 0.773044
 v -0.0269124 0.266398 0.773044
-g MiddleBar04
+g back_MiddleBar04
 f 529 530 531 
 f 532 531 530 
 f 533 530 534 
@@ -1654,9 +1654,9 @@ f 542 544 547
 f 544 545 547 
 f 532 528 531 
 f 527 531 528 
-# End of mesh MiddleBar04
+# End of mesh back_MiddleBar04
 
-# Starting mesh MiddleBar05
+# Starting mesh back_MiddleBar05
 v -0.052433 0.274484 0.831896
 v -0.0764987 0.27356 0.831896
 v -0.0520863 0.26546 0.773044
@@ -1695,7 +1695,7 @@ v -0.0545475 0.32961 1.04829
 v -0.0786184 0.328774 1.04863
 v -0.0542163 0.321003 1.05059
 v -0.0782871 0.320163 1.05093
-g MiddleBar05
+g back_MiddleBar05
 f 553 554 555 
 f 556 555 554 
 f 554 553 557 
@@ -1768,9 +1768,9 @@ f 572 569 566
 f 569 567 566 
 f 556 564 555 
 f 563 555 564 
-# End of mesh MiddleBar05
+# End of mesh back_MiddleBar05
 
-# Starting mesh MiddleBar06
+# Starting mesh back_MiddleBar06
 v -0.123707 0.241037 0.596901
 v -0.0997497 0.243526 0.596901
 v -0.124189 0.245682 0.654779
@@ -1809,7 +1809,7 @@ v -0.13141 0.315168 1.05237
 v -0.107439 0.317508 1.05178
 v -0.132301 0.323735 1.05006
 v -0.108329 0.32608 1.04949
-g MiddleBar06
+g back_MiddleBar06
 f 591 592 593 
 f 594 593 592 
 f 594 595 593 
@@ -1882,9 +1882,9 @@ f 607 609 593
 f 609 591 593 
 f 591 609 592 
 f 610 592 609 
-# End of mesh MiddleBar06
+# End of mesh back_MiddleBar06
 
-# Starting mesh MiddleBar01
+# Starting mesh back_MiddleBar01
 v 0.126027 0.302158 1.00692
 v 0.143517 0.25315 0.616654
 v 0.143384 0.252202 0.596901
@@ -1923,7 +1923,7 @@ v 0.146421 0.274013 0.890515
 v 0.124202 0.289058 0.948867
 v 0.148055 0.285734 0.948867
 v 0.149881 0.298835 1.00692
-g MiddleBar01
+g back_MiddleBar01
 f 652 653 654 
 f 655 654 653 
 f 654 656 652 
@@ -1996,7 +1996,7 @@ f 632 653 652
 f 653 632 633 
 f 653 633 655 
 f 631 655 633 
-# End of mesh MiddleBar01
+# End of mesh back_MiddleBar01
 
 # Starting mesh LegBackRight
 v -0.24037 0.227561 0.146086
