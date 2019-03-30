@@ -1,4 +1,5 @@
 #include <algorithm>
+#include <bits/stdc++.h>
 #include <iostream>
 #include <cmath>
 #include <fstream>
@@ -72,6 +73,7 @@ ObjBuffer ObjBuffer::readObjFile(string filename) {
 			} else if (line.rfind("# Starting mesh", 0) == 0) {
 				ObjGroup group;
 				group.name = line.substr(16, line.size() - 17);
+				transform(group.name.begin(), group.name.end(), group.name.begin(), ::tolower);
 				group.vStart = vi;
 				buffer.groups.push_back(group);
 			} else if (line.rfind("g ", 0) == 0) {

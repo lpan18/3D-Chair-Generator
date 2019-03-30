@@ -126,7 +126,7 @@ public:
     void loadObj(string fileName) {
         ObjBuffer obj = ObjBuffer::readObjFile(fileName);
         // Temp
-        obj = obj.getGroup("backrest");
+        obj = obj.getGroup("back");
         // Temp
         delete mMesh;
         mMesh = new Mesh(obj);
