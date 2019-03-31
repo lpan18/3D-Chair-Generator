@@ -12,8 +12,6 @@ using Eigen::MatrixXf;
 #ifndef W_EDGE_H
 #define W_EDGE_H
 
-const float PI = 3.14159265359;
-
 struct W_edge
 {
 	struct Vertex* start; Vertex* end;

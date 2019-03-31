@@ -1,5 +1,6 @@
 #include <string>
 #include <Eigen/Geometry>
+#include "Constants.h"
 
 using namespace std;
 using Eigen::Vector3f;
@@ -10,8 +11,6 @@ using Eigen::MatrixXf;
 
 #ifndef OBJBUFFER_H
 #define OBJBUFFER_H
-
-const float MAXVALUE = 99999999;
 
 struct ObjGroup
 {
@@ -47,4 +46,4 @@ struct ObjBuffer
 	}
 	void setCenterAndScale();
 };
-#endif
+#endif // OBJBUFFER_H

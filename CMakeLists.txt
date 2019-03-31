@@ -20,7 +20,8 @@ set(OBJ_SOURCE_FILES
     ObjBuffer.cpp
     ObjBuffer.h
     W_edge.cpp
-    W_edge.h)
+    W_edge.h
+    Constants.h)
 
 add_executable(chair ${OBJ_SOURCE_FILES} ${MyResources})
 target_link_libraries(chair nanogui ${NANOGUI_EXTRA_LIBS})
