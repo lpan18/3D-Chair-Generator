@@ -17,6 +17,8 @@ set(OBJ_SOURCE_FILES
     obj_view.cpp
     Mesh.cpp
     Mesh.h
+    ObjBuffer.cpp
+    ObjBuffer.h
     W_edge.cpp
     W_edge.h)
 

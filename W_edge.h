@@ -13,7 +13,6 @@ using Eigen::MatrixXf;
 #define W_EDGE_H
 
 const float PI = 3.14159265359;
-const float MAXVALUE = 99999999;
 
 struct W_edge
 {
