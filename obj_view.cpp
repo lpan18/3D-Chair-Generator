@@ -137,12 +137,40 @@ public:
     void tempTest() {
         delete mMesh;
 
-        string fileName = "ChairModels/chair0004.obj";
-        ObjBuffer obj = ObjBuffer::readObjFile(fileName);
-        ObjBuffer obj1 = obj.getGroup("leg");
-        mMesh = new Mesh(obj1);
+        string fileName1 = "ChairModels/chair0004.obj";
+        ObjBuffer obj1 = ObjBuffer::readObjFile(fileName1);
+        ObjBuffer obj11 = obj1.getGroup("seat");
+        ObjBuffer obj12 = obj1.getGroup("leg");
+        ObjBuffer obj13 = obj1.getGroup("back");
+        ObjBuffer obj14 = obj1.getGroup("arm");
+
+        string fileName2 = "ChairModels/chair0160.obj";
+        ObjBuffer obj2 = ObjBuffer::readObjFile(fileName2);
+        ObjBuffer obj21 = obj2.getGroup("seat");
+        ObjBuffer obj22 = obj2.getGroup("leg");
+        ObjBuffer obj23 = obj2.getGroup("back");
+        ObjBuffer obj24 = obj2.getGroup("arm");
+
+
+        vector<ObjBuffer> objBuffers;
+        objBuffers.push_back(obj11);
+        objBuffers.push_back(obj22);
+        objBuffers.push_back(obj13);
+        objBuffers.push_back(obj24);
+
+        ObjBuffer obj3 = ObjBuffer::combineObjBuffers(objBuffers);
+        mMesh = new Mesh(obj3);
+
+        obj24.Destroy();
+        obj23.Destroy();
+        obj22.Destroy();
+        obj21.Destroy();
+        obj2.Destroy();
+        obj14.Destroy();
+        obj13.Destroy();
+        obj12.Destroy();
+        obj11.Destroy();
         obj1.Destroy();
-        obj.Destroy();
 
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);

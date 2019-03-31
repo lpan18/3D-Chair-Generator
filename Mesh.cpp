@@ -91,6 +91,43 @@ ObjBuffer ObjBuffer::readObjFile(string filename) {
 	return buffer;
 }
 
+ObjBuffer ObjBuffer::combineObjBuffers(vector<ObjBuffer> objBuffers) {
+	ObjBuffer buffer;
+	// First, get vCount and fCount and initialize buffer
+	int vCount = 0;
+	int fCount = 0;
+	for (auto b : objBuffers) {
+		vCount += b.nVertices;
+		fCount += b.mFaces;
+	}
+
+	buffer.nVertices = vCount;
+	buffer.mFaces = fCount;
+	buffer.vertices = new Vector3f[vCount];
+	buffer.faces = new Vector3i[fCount];
+
+	// Iterate objBuffers again for vertices and faces
+	int vi = 0;
+	int fi = 0;
+	for (auto b : objBuffers) {
+		int viOffset = vi;
+		
+		for (int i = 0; i < b.nVertices; i++) {
+			buffer.vertices[vi] = b.vertices[i];
+			vi++;
+		}
+		
+		for (int i = 0; i < b.mFaces; i++) {
+			buffer.faces[fi] = b.faces[i] + Vector3i(viOffset, viOffset, viOffset);
+			fi++;
+		}
+	}
+
+	buffer.setCenterAndScale();
+	
+	return buffer;
+}
+
 ObjBuffer ObjBuffer::getGroup(string groupName) {
 	ObjBuffer buffer;
 	buffer.center = center;
@@ -240,7 +277,7 @@ void Mesh::readObjBuffer(ObjBuffer buffer) {
 	nVertices = buffer.nVertices;
 	mFaces = buffer.mFaces;
 	lW_edges = buffer.mFaces * 3;
-
+	
 	vertices = new Vertex[nVertices];
 	faces = new Face[mFaces];
 	w_edges = new W_edge[lW_edges];
