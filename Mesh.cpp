@@ -16,6 +16,13 @@
 
 using namespace std;
 
+#define RAND  (rand() % 100) / 100
+#define WIDTH 112
+#define HEIGHT 112
+#define DENSITY 8
+
+
+
 // Function for sorting w_edges
 bool sortByStartVertexThenByEndVertex(const W_edge* edge1, const W_edge* edge2) {
 	if (edge1->start < edge2->start)
@@ -198,4 +205,72 @@ Vector3f Mesh::getVertexSN(Vertex* v, MatrixXf* normals) {
 	}
 
     return vec.normalized();
+}
+
+
+
+// ======================= render depth map =======================
+
+void Mesh::renderDepthImage() {
+    // originally in main
+	CvSize imgSize;
+	imgSize.width = WIDTH * 2;
+	imgSize.height = HEIGHT * 2;
+	IplImage* image = cvCreateImage(imgSize, 8, 1);
+
+    renderOneModel("chair", image);
+}
+
+void Mesh::renderOneModel(string filename, IplImage* image) {
+    // Read model from vertexes and faces
+	int count0 = 0;
+	double xzRot, xyRot;
+	xzRot = (2.0 * M_PI) / (DENSITY / 2.0) * 0.0;
+	xyRot = (2.0 * M_PI) / (DENSITY / 2.0) * 0.0;
+
+	string out;
+	out = std::to_string(count0); 
+	cout << "In write image, count 0 - " << count0 << endl;  
+
+	renderOneDepth(filename, out, xzRot, xyRot, image);
+	count0++;
+
+	for (int i = 1; i < DENSITY / 2; i++) {
+		for (int j = 0; j < DENSITY; j++) {
+			xzRot = (2.0 * M_PI) / DENSITY * i;
+			xyRot = (2.0 * M_PI) / DENSITY * j;
+
+			out.clear();
+			out = std::to_string(count0); 
+			cout << "In write image, count 0 - " << count0 << endl;   
+
+			renderOneDepth(filename, out, xzRot, xyRot, image);
+			count0++;
+		}
+	}
+
+	xzRot = (2.0 * M_PI) / (DENSITY / 2.0) * 4.0;
+	xyRot = (2.0 * M_PI) / (DENSITY / 2.0) * 0.0;
+
+	out.clear();
+    out = std::to_string(count0); 
+	renderOneDepth(filename, out, xzRot, xyRot, image);
+}
+
+void Mesh::renderOneDepth(std::string filename, string& depthIndex, 
+						  double xzRot, double xyRot, 
+						  IplImage* image) {
+	string str = "depth_images/" + depthIndex + "-depth.jpg";
+}
+
+void Mesh::getDepth(double v,double vmin,double vmax,int &depth) {
+	if (v < vmin) {
+		v = vmin;
+	}
+	if (v > vmax) {
+		v = vmax;
+	}
+		
+	double dv = vmax - vmin;
+	depth = (v - vmin) / dv * 255;
 }

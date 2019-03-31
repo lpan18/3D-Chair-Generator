@@ -3,6 +3,14 @@
 #include "W_edge.h"
 #include "ObjBuffer.h"
 
+// #include <GL/osmesa.h>
+#include <GL/glu.h>
+#include <iomanip>
+#include <GL/gl.h>
+#include <GL/glut.h>
+#include <opencv/highgui.h>
+#include <opencv/cv.h>
+
 using namespace std;
 using Eigen::Vector3f;
 using Eigen::Vector3i;
@@ -45,6 +53,9 @@ public:
 	}
 	// Write mesh to an obj file
 	void writeObj(string fileName);
+	// Render depth image
+	void renderDepthImage();
+
 protected:
     // Number of vertices
 	int nVertices = 0;
@@ -71,5 +82,12 @@ protected:
 	void constructLeft();
 	// Get vertex normals for smooth shading
 	Vector3f getVertexSN(Vertex* v, MatrixXf* normals);
+
+	// helper functions of rendering
+	void renderOneModel(string filename, IplImage* image);
+	void renderOneDepth(std::string filename, string& depthIndex, 
+						double xzRot, double xyRot, 
+						IplImage* image);
+	void getDepth(double v,double vmin,double vmax,int &depth);
 };
 #endif //MESH_H

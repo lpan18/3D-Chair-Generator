@@ -25,8 +25,7 @@ set(OBJ_SOURCE_FILES
     ObjBuffer.h
     W_edge.cpp
     W_edge.h
-    Constants.h
-    render.cpp)
+    Constants.h)
 
 add_executable(chair ${OBJ_SOURCE_FILES} ${MyResources})
 target_link_libraries(chair nanogui ${NANOGUI_EXTRA_LIBS} ${OpenCV_LIBS} ${OPENGL_GL_LIBRARY} ${GLUT_LIBRARIES})
