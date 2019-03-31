@@ -40,10 +40,7 @@ struct ObjBuffer
 	// Generate a new ObjBuffer for group groupName
 	ObjBuffer getGroup(string groupName);
 	// Delete vertices and faces
-	void Destroy() {
-		delete []vertices;
-		delete []faces;
-	}
+	void destroy();
 	void setCenterAndScale();
 };
 #endif // OBJBUFFER_H

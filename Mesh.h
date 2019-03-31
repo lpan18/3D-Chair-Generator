@@ -20,7 +20,7 @@ public:
 		ObjBuffer buffer = ObjBuffer::readObjFile(fileName);
 		readObjBuffer(buffer);
 		constructLeft();
-		buffer.Destroy();
+		buffer.destroy();
 	}
 	Mesh(ObjBuffer buffer) {
 		readObjBuffer(buffer);

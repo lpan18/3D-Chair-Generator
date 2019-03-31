@@ -161,16 +161,16 @@ public:
         ObjBuffer obj3 = ObjBuffer::combineObjBuffers(objBuffers);
         mMesh = new Mesh(obj3);
 
-        obj24.Destroy();
-        obj23.Destroy();
-        obj22.Destroy();
-        obj21.Destroy();
-        obj2.Destroy();
-        obj14.Destroy();
-        obj13.Destroy();
-        obj12.Destroy();
-        obj11.Destroy();
-        obj1.Destroy();
+        obj24.destroy();
+        obj23.destroy();
+        obj22.destroy();
+        obj21.destroy();
+        obj2.destroy();
+        obj14.destroy();
+        obj13.destroy();
+        obj12.destroy();
+        obj11.destroy();
+        obj1.destroy();
 
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);

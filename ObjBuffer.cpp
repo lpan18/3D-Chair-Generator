@@ -148,6 +148,11 @@ ObjBuffer ObjBuffer::getGroup(string groupName) {
 	return buffer;
 }
 
+void ObjBuffer::destroy() {
+	delete []vertices;
+	delete []faces;
+}
+
 void ObjBuffer::setCenterAndScale() {
 	float maxX, maxY, maxZ;
 	float minX, minY, minZ;
