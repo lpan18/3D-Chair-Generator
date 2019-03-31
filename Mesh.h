@@ -12,9 +12,8 @@ using Eigen::MatrixXf;
 #ifndef MESH_H
 #define MESH_H
 
-class ObjGroup
+struct ObjGroup
 {
-public:
 	string name;
 	int vStart;
 	int vEnd;
@@ -23,9 +22,8 @@ public:
 };
 
 // An in-memory representation of obj file
-class ObjBuffer
+struct ObjBuffer
 {
-public:
 	int nVertices;
 	int mFaces;
 	Vector3f center;
@@ -37,7 +35,13 @@ public:
 
     // Read obj file
 	static ObjBuffer readObjFile(string filename);
+	// Generate a new ObjBuffer for group groupName
 	ObjBuffer getGroup(string groupName);
+	// Delete vertices and faces
+	void Destroy() {
+		delete []vertices;
+		delete []faces;
+	}
 	void setCenterAndScale();
 };
 
@@ -45,6 +49,12 @@ public:
 class Mesh
 {
 public:
+    Mesh(string fileName) {
+		ObjBuffer buffer = ObjBuffer::readObjFile(fileName);
+		readObjBuffer(buffer);
+		constructLeft();
+		buffer.Destroy();
+	}
 	Mesh(ObjBuffer buffer) {
 		readObjBuffer(buffer);
 		constructLeft();

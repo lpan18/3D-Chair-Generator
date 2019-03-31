@@ -124,12 +124,25 @@ public:
 
     // method to load obj
     void loadObj(string fileName) {
-        ObjBuffer obj = ObjBuffer::readObjFile(fileName);
-        // Temp
-        obj = obj.getGroup("back");
-        // Temp
         delete mMesh;
-        mMesh = new Mesh(obj);
+        mMesh = new Mesh(fileName);
+
+        positions = mMesh->getPositions();
+        normals = mMesh->getNormals(&positions);
+        smoothNormals = mMesh->getSmoothNormals(&normals);
+        colors = mMesh->getColors();
+    }
+
+    // Temp test method
+    void tempTest() {
+        delete mMesh;
+
+        string fileName = "ChairModels/chair0004.obj";
+        ObjBuffer obj = ObjBuffer::readObjFile(fileName);
+        ObjBuffer obj1 = obj.getGroup("leg");
+        mMesh = new Mesh(obj1);
+        obj1.Destroy();
+        obj.Destroy();
 
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);
@@ -254,6 +267,10 @@ public:
         saveBtn->setCallback([&] {
             string fileName = file_dialog({ {"obj", "obj file"} }, true);
             mCanvas->writeObj(fileName);
+        });
+        Button *testBtn = new Button(anotherWindow, "Test");
+        testBtn->setCallback([&] {
+            mCanvas->tempTest();
         });
 
         new Label(anotherWindow, "Views", "sans-bold", 20);

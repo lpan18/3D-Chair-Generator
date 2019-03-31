@@ -284,9 +284,6 @@ void Mesh::readObjBuffer(ObjBuffer buffer) {
 
 		faces[facei].edge = w_edges + start_w_edgei;
 	}
-
-	delete []buffer.vertices;
-	delete []buffer.faces;
 }
 
 // Fill in left parameters (left_prev, left_next, and left) of W_edge
