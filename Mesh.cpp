@@ -325,7 +325,25 @@ void Mesh::renderOneDepth(std::string filename, string& depthIndex,
 	int resultNum;
 	vector<float> depth;
 	vector<int> depth_255;
-	// mexFunction(P, imw, imh, vmat, faces, result, resultNum, depth);
+	mexFunction(P, imw, imh, vmat, fMatrix, result, resultNum, depth);
+
+	delete[] result;
+	for (int i = 0; i < depth.size(); i++) {
+		int depthInt;
+		getDepth(depth[i], 0, 1, depthInt);
+		depth_255.push_back(depthInt);
+	}
+
+	CvSize imgSize;
+	imgSize.width = WIDTH * 2;
+	imgSize.height = HEIGHT * 2;
+	
+	for(int i = 0;i < imgSize.width; i++) {
+		for(int j = 0;j < imgSize.height; j++) {
+			((uchar*)(image->imageData + image->widthStep * j))[i] = (char)depth_255[i * WIDTH * 2 + j];
+		}
+	}
+	cvSaveImage(str.c_str(), image);
 }
 
 void Mesh::faceToMatrix(MatrixXf& fMatrix) {
