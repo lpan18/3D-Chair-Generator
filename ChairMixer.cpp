@@ -28,5 +28,39 @@ ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBu
     buffers.push_back(arm);
 
     ObjBuffer mixed = ObjBuffer::combineObjBuffers(buffers);
+    
+    int legVI = seat.nVertices;
+    int backVI = legVI + leg.nVertices;
+    int armVI = backVI + back.nVertices;
+    int endVI = armVI + arm.nVertices;
+
+    float legScaleX = seat.width / leg.width;
+    float legScaleY = seat.depth / leg.depth;
+    float legScaleZ = (legScaleX + legScaleY) / 2;
+    for (int i = legVI; i < backVI; i++) {
+        Vector3f offset = mixed.vertices[i] - leg.bottomCenter;
+        mixed.vertices[i] = Vector3f(offset.x() * legScaleX,
+                                     offset.y() * legScaleY,
+                                     offset.z() * legScaleZ)
+                            + seat.bottomCenter;
+    }
+
+    float backScale = seat.width / back.width;
+    for (int i = backVI; i < armVI; i++) {
+        Vector3f offset = (mixed.vertices[i] - back.backCenter) * backScale;
+        mixed.vertices[i] = offset + seat.backCenter;
+    }
+
+    float armScaleX = seat.width / arm.width;
+    float armScaleY = seat.depth / arm.depth;
+    float armScaleZ = (armScaleX + armScaleY) / 2;
+    for (int i = armVI; i < endVI; i++) {
+        Vector3f offset = mixed.vertices[i] - arm.topCenter;
+        mixed.vertices[i] = Vector3f(offset.x() * armScaleX,
+                                     offset.y() * armScaleY,
+                                     offset.z() * armScaleZ)
+                            + seat.topCenter;
+    }
+
     return mixed;
 }

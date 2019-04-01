@@ -15,10 +15,14 @@ public:
 
     // Temp Test Method
     ObjBuffer tempTest() {
-        ChairBuffer chair1 = chairs[3];
-        ChairBuffer chair2 = chairs[4];
+        srand (time(NULL));
 
-        return mix(chair1.seat, chair2.leg, chair1.back, chair2.arm);
+        ChairBuffer chair1 = chairs[rand() % chairs.size()];
+        ChairBuffer chair2 = chairs[rand() % chairs.size()];
+        ChairBuffer chair3 = chairs[rand() % chairs.size()];
+        ChairBuffer chair4 = chairs[rand() % chairs.size()];
+
+        return mix(chair1.seat, chair2.leg, chair3.back, chair4.arm);
     }
 };
 #endif // CHAIRMIXER_H
