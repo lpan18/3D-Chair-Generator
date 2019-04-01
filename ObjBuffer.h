@@ -12,8 +12,27 @@ using Eigen::MatrixXf;
 #ifndef OBJBUFFER_H
 #define OBJBUFFER_H
 
-struct ObjGroup
-{
+struct ObjBound {
+	float maxX;
+	float maxY;
+	float maxZ;
+	float minX;
+	float minY;
+	float minZ;
+
+	Vector3f getCenter() {
+		return Vector3f(maxX / 2.0f + minX / 2.0f, maxY / 2.0f + minY / 2.0f, maxZ / 2.0f + minZ / 2.0f);
+	}
+
+	float getScale() {
+		Vector3f center = getCenter();
+		Vector3f maxOffset = Vector3f(maxX, maxY, maxZ) - center;
+	    float scale = 1.0f / maxOffset.maxCoeff();
+		return scale;
+	}
+};
+
+struct ObjGroup {
 	string name;
 	int vStart;
 	int vEnd;
@@ -22,8 +41,7 @@ struct ObjGroup
 };
 
 // An in-memory representation of obj file
-struct ObjBuffer
-{
+struct ObjBuffer {
 	int nVertices;
 	int mFaces;
 	Vector3f center;
@@ -41,6 +59,30 @@ struct ObjBuffer
 	ObjBuffer getGroup(string groupName);
 	// Delete vertices and faces
 	void destroy();
+	// Reset center and scale of this ObjBuffer
 	void setCenterAndScale();
+	// Get ObjBound
+	ObjBound getBound();
+};
+
+struct ChairPartBuffer : ObjBuffer {
+	Vector3f backCenter;
+	Vector3f topCenter;
+	Vector3f bottomCenter;
+	float width;
+	float depth;
+
+	static ChairPartBuffer fromSeat(ObjBuffer seat);
+	static ChairPartBuffer fromPart(ObjBuffer part, ChairPartBuffer seat);
+};
+
+struct ChairBuffer {
+	ObjBuffer chair;
+	ChairPartBuffer seat;
+	ChairPartBuffer leg;
+	ChairPartBuffer back;
+	ChairPartBuffer arm;
+
+	static ChairBuffer readObjFile(string filename);
 };
 #endif // OBJBUFFER_H

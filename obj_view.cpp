@@ -138,39 +138,19 @@ public:
         delete mMesh;
 
         string fileName1 = "ChairModels/chair0004.obj";
-        ObjBuffer obj1 = ObjBuffer::readObjFile(fileName1);
-        ObjBuffer obj11 = obj1.getGroup("seat");
-        ObjBuffer obj12 = obj1.getGroup("leg");
-        ObjBuffer obj13 = obj1.getGroup("back");
-        ObjBuffer obj14 = obj1.getGroup("arm");
+        ChairBuffer chair1 = ChairBuffer::readObjFile(fileName1);
 
         string fileName2 = "ChairModels/chair0160.obj";
-        ObjBuffer obj2 = ObjBuffer::readObjFile(fileName2);
-        ObjBuffer obj21 = obj2.getGroup("seat");
-        ObjBuffer obj22 = obj2.getGroup("leg");
-        ObjBuffer obj23 = obj2.getGroup("back");
-        ObjBuffer obj24 = obj2.getGroup("arm");
-
+        ChairBuffer chair2 = ChairBuffer::readObjFile(fileName2);
 
         vector<ObjBuffer> objBuffers;
-        objBuffers.push_back(obj11);
-        objBuffers.push_back(obj22);
-        objBuffers.push_back(obj13);
-        objBuffers.push_back(obj24);
+        objBuffers.push_back(chair1.seat);
+        objBuffers.push_back(chair2.leg);
+        objBuffers.push_back(chair1.back);
+        objBuffers.push_back(chair2.arm);
 
         ObjBuffer obj3 = ObjBuffer::combineObjBuffers(objBuffers);
         mMesh = new Mesh(obj3);
-
-        obj24.destroy();
-        obj23.destroy();
-        obj22.destroy();
-        obj21.destroy();
-        obj2.destroy();
-        obj14.destroy();
-        obj13.destroy();
-        obj12.destroy();
-        obj11.destroy();
-        obj1.destroy();
 
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);

@@ -154,6 +154,12 @@ void ObjBuffer::destroy() {
 }
 
 void ObjBuffer::setCenterAndScale() {
+	ObjBound bound = getBound();
+	center = bound.getCenter();
+	scale = bound.getScale();
+}
+
+ObjBound ObjBuffer::getBound() {
 	float maxX, maxY, maxZ;
 	float minX, minY, minZ;
 	maxX = maxY = maxZ = -MAXVALUE;
@@ -168,7 +174,69 @@ void ObjBuffer::setCenterAndScale() {
 		minZ = vertices[i].z() < minZ ? vertices[i].z() : minZ;
 	}
 
-	center = Vector3f(maxX / 2.0f + minX / 2.0f, maxY / 2.0f + minY / 2.0f, maxZ / 2.0f + minZ / 2.0f);
-	Vector3f maxOffset = Vector3f(maxX, maxY, maxZ) - center;
-	scale = 1.0f / maxOffset.maxCoeff();
+	ObjBound bound;
+	bound.maxX = maxX;
+	bound.maxY = maxY;
+	bound.maxZ = maxZ;
+	bound.minX = minX;
+	bound.minY = minY;
+	bound.minZ = minZ;
+
+	return bound;
+}
+
+ChairPartBuffer ChairPartBuffer::fromSeat(ObjBuffer seat) {
+	ChairPartBuffer seat1;
+	seat1.nVertices = seat.nVertices;
+	seat1.mFaces = seat.mFaces;
+	seat1.center = seat.center;
+	seat1.scale = seat.scale;
+	seat1.vertices = seat.vertices;
+	seat1.faces = seat.faces;
+
+	ObjBound bound = seat1.getBound();
+	Vector3f center = bound.getCenter();
+	
+	seat1.backCenter = Vector3f(center.x(), bound.maxY, bound.minZ);
+	seat1.topCenter = Vector3f(center.x(), center.y(), bound.minZ);
+	seat1.bottomCenter = Vector3f(center.x(), center.y(), bound.maxZ);
+	seat1.width = bound.maxX - bound.minX;
+	seat1.depth = bound.maxY - bound.minY;
+
+	return seat1;
+}
+
+ChairPartBuffer ChairPartBuffer::fromPart(ObjBuffer part, ChairPartBuffer seat) {
+	ChairPartBuffer part1;
+	part1.nVertices = part.nVertices;
+	part1.mFaces = part.mFaces;
+	part1.center = part.center;
+	part1.scale = part.scale;
+	part1.vertices = part.vertices;
+	part1.faces = part.faces;
+
+	part1.backCenter = seat.backCenter;
+	part1.topCenter = seat.topCenter;
+	part1.bottomCenter = seat.bottomCenter;
+	part1.width = seat.width;
+	part1.depth = seat.depth;
+
+	return part1;
+}
+
+ChairBuffer ChairBuffer::readObjFile(string fileName) {
+	ObjBuffer chair = ObjBuffer::readObjFile(fileName);
+	ObjBuffer seat = chair.getGroup("seat");
+	ObjBuffer leg = chair.getGroup("leg");
+	ObjBuffer back = chair.getGroup("back");
+	ObjBuffer arm = chair.getGroup("arm");
+
+	ChairBuffer chairBuffer;
+	chairBuffer.chair = chair;
+	chairBuffer.seat = ChairPartBuffer::fromSeat(seat);
+	chairBuffer.leg = ChairPartBuffer::fromPart(leg, chairBuffer.seat);
+	chairBuffer.back = ChairPartBuffer::fromPart(back, chairBuffer.seat);
+	chairBuffer.arm = ChairPartBuffer::fromPart(arm, chairBuffer.seat);
+
+	return chairBuffer;
 }
