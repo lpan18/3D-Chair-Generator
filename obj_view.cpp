@@ -186,6 +186,14 @@ public:
         }
     }
 
+    void renderDepthImage() {
+        if (mMesh != NULL) {
+            mMesh->renderDepthImage();
+        } else {
+            cout << "No object in scene" << endl;
+        }
+    }
+
     void setFrontView() {
         mMVP << -0.5, 0, 0, 0,
                 0, 0, 0.5, 0,
@@ -299,6 +307,7 @@ public:
         Button *testBtn = new Button(anotherWindow, "Test");
         testBtn->setCallback([&] {
             mCanvas->tempTest();
+            mCanvas->renderDepthImage();
         });
 
         new Label(anotherWindow, "Views", "sans-bold", 20);

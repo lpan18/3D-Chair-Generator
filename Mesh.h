@@ -86,8 +86,17 @@ protected:
 	// helper functions of rendering
 	void renderOneModel(string filename, IplImage* image);
 	void renderOneDepth(std::string filename, string& depthIndex, 
+						MatrixXf vMatrix, MatrixXf fMatrix,
 						double xzRot, double xyRot, 
 						IplImage* image);
+	void faceToMatrix(MatrixXf& fMatrix);
 	void getDepth(double v,double vmin,double vmax,int &depth);
+	MatrixXf genRotMat(double theta0, double theta1);
+	MatrixXf genTiltMat(double theta);
+	MatrixXf scalePoints(MatrixXf coor, MatrixXf center, MatrixXf size);
+	void mexFunction(MatrixXf P, int width, int height, 
+					 MatrixXf vMat, MatrixXf fMatrix, 
+					 unsigned int* result, int &resultNum, 
+					 vector<float> &depth);
 };
 #endif //MESH_H
