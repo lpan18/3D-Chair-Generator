@@ -136,23 +136,13 @@ public:
 
     // Temp test method
     void tempTest() {
-        delete mMesh;
-
         string path = "ChairModels";
         ChairMixer mixer;
         mixer.readFolder(path);
+        ObjBuffer mixed = mixer.tempTest();
 
-        ChairBuffer chair1 = mixer.chairs[0];
-        ChairBuffer chair2 = mixer.chairs[1];
-
-        vector<ObjBuffer> objBuffers;
-        objBuffers.push_back(chair1.seat);
-        objBuffers.push_back(chair2.leg);
-        objBuffers.push_back(chair1.back);
-        objBuffers.push_back(chair2.arm);
-
-        ObjBuffer obj3 = ObjBuffer::combineObjBuffers(objBuffers);
-        mMesh = new Mesh(obj3);
+        delete mMesh;
+        mMesh = new Mesh(mixed);
 
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);

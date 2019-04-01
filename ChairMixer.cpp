@@ -19,3 +19,14 @@ void ChairMixer::readFolder(string path) {
         closedir(dir);
     }
 }
+
+ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBuffer back, ChairPartBuffer arm) {
+    vector<ObjBuffer> buffers;
+    buffers.push_back(seat);
+    buffers.push_back(leg);
+    buffers.push_back(back);
+    buffers.push_back(arm);
+
+    ObjBuffer mixed = ObjBuffer::combineObjBuffers(buffers);
+    return mixed;
+}
