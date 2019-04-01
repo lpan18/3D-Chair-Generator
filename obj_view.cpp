@@ -61,6 +61,7 @@
 #  include <windows.h>
 #endif
 
+#include "ChairMixer.h"
 #include "Mesh.h"
 
 using std::cout;
@@ -137,11 +138,12 @@ public:
     void tempTest() {
         delete mMesh;
 
-        string fileName1 = "ChairModels/chair0004.obj";
-        ChairBuffer chair1 = ChairBuffer::readObjFile(fileName1);
+        string path = "ChairModels";
+        ChairMixer mixer;
+        mixer.readFolder(path);
 
-        string fileName2 = "ChairModels/chair0160.obj";
-        ChairBuffer chair2 = ChairBuffer::readObjFile(fileName2);
+        ChairBuffer chair1 = mixer.chairs[0];
+        ChairBuffer chair2 = mixer.chairs[1];
 
         vector<ObjBuffer> objBuffers;
         objBuffers.push_back(chair1.seat);
