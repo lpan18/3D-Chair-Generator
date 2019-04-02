@@ -93,7 +93,7 @@ public:
         using namespace nanogui;
         
         mShader.initFromFiles("a_smooth_shader", "StandardShading.vertexshader", "StandardShading.fragmentshader");
-        mArcball.setSize({400,500});
+        mArcball.setSize({500,500});
 
         // After binding the shader to the current context we can send data to opengl that will be handled
         // by the vertex shader and then by the fragment shader, in that order.
@@ -274,7 +274,7 @@ private:
 
 class ObjViewApp : public nanogui::Screen {
 public:
-    ObjViewApp() : nanogui::Screen(Eigen::Vector2i(800, 600), "Chair Modeling", false) {
+    ObjViewApp() : nanogui::Screen(Eigen::Vector2i(800, 700), "Chair Modeling", false) {
         using namespace nanogui;
 
 	    // Create a window context in which we will render the OpenGL canvas
@@ -285,13 +285,13 @@ public:
 	    // OpenGL canvas initialization
         mCanvas = new MyGLCanvas(window);
         mCanvas->setBackgroundColor({100, 100, 100, 255});
-        mCanvas->setSize({400, 500});
+        mCanvas->setSize({500, 500});
 
     	// Create widgets window and insert widgets into it
 	    Window *widgets = new Window(this, "Widgets");
-        widgets->setPosition(Vector2i(485, 15));
+        widgets->setPosition(Vector2i(560, 15));
         widgets->setLayout(new GroupLayout());
-	    widgets->setFixedSize(Vector2i(200, 550));
+	    widgets->setFixedSize(Vector2i(200, 600));
 
 	    // Open obj file
         new Label(widgets, "File dialog", "sans-bold", 20);
@@ -313,7 +313,9 @@ public:
         Button *testBtn = new Button(widgets, "Test");
 
         Label *chairslabel = new Label(widgets, "Chair Models", "sans-bold", 20);
+        Label *scorelabel = new Label(widgets, "Score:  ", "sans-bold", 20);
         chairslabel->setVisible(false);
+        scorelabel->setVisible(false);
 
         // Generate chair obj buttons
         vector<Button*> objs;
@@ -332,7 +334,7 @@ public:
         }  
         
         // call back function for testBtn 
-        testBtn->setCallback([this,objs,chairslabel,n,folder]() {
+        testBtn->setCallback([this,objs,chairslabel,scorelabel,n,folder]() {
             // bool wasVisible = objs[0]->visible();
             for(size_t idx = 0; idx < n; idx++)
             {  
@@ -341,50 +343,17 @@ public:
                 mCanvas->writeObj(objname);
 
                 chairslabel->setVisible(true);
+                scorelabel->setVisible(true);
                 objs[idx]->setVisible(true);
-                objs[idx]->setCallback([this, objname] {
+                objs[idx]->setCallback([this, objname, scorelabel] {
                     ObjViewApp::fileName = objname;
                     mCanvas->loadObj(fileName);
+                    string score = "8";
+                    scorelabel->setCaption("Score:  " + score);
                 });
             }
             performLayout();           
         });            
-
-
-
-
-
-        // Button *obj1;
-        // 
-        // size_t i = 0;
-        // size_t n = 5; // how many objs in one test
-        // for (const auto & entry : experimental::filesystem::directory_iterator(folder)){
-        //     i++;           
-        //     cout << entry.path() << endl;
-        //     obj1 = new Button(widgets,  to_string(i) + ".obj");
-        //     obj1->setVisible(false);    
-        // }   
-        // obj1 -= n-1;
-
-        // testBtn->setCallback([this,obj1,n,folder]() {
-        //     for(size_t i = 1; i <= n; i++)
-        //     {  
-        //         string filename1 = folder + to_string(i) + ".obj";      
-        //         mCanvas->tempTest();
-        //         mCanvas->writeObj(filename1);
-        //         bool wasVisible = obj1->visible();
-        //         obj1->setVisible(!wasVisible);
-        //     }
-        //     performLayout();           
-        // });            
-
-        
-// obj1->setCallback([&] {
-//                     ObjViewApp::fileName = filename1;
-//                     mCanvas->loadObj(fileName);
-//                 });
-//                 obj1++;
- 
         
     	// Shading mode
         new Label(widgets, "Shading Mode", "sans-bold", 20);
