@@ -94,6 +94,8 @@ protected:
 	MatrixXf genRotMat(double theta0, double theta1);
 	MatrixXf genTiltMat(double theta);
 	MatrixXf scalePoints(MatrixXf coor, MatrixXf center, MatrixXf size);
+	void uint2uchar(unsigned int in, unsigned char* out);
+	unsigned int uchar2uint(unsigned char* in);
 	void mexFunction(MatrixXf P, int width, int height, 
 					 MatrixXf vMat, MatrixXf fMatrix, 
 					 unsigned int* result, int &resultNum, 

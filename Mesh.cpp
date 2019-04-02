@@ -327,23 +327,23 @@ void Mesh::renderOneDepth(std::string filename, string& depthIndex,
 	vector<int> depth_255;
 	mexFunction(P, imw, imh, vmat, fMatrix, result, resultNum, depth);
 
-	delete[] result;
-	for (int i = 0; i < depth.size(); i++) {
-		int depthInt;
-		getDepth(depth[i], 0, 1, depthInt);
-		depth_255.push_back(depthInt);
-	}
+	// delete[] result;
+	// for (int i = 0; i < depth.size(); i++) {
+	// 	int depthInt;
+	// 	getDepth(depth[i], 0, 1, depthInt);
+	// 	depth_255.push_back(depthInt);
+	// }
 
-	CvSize imgSize;
-	imgSize.width = WIDTH * 2;
-	imgSize.height = HEIGHT * 2;
+	// CvSize imgSize;
+	// imgSize.width = WIDTH * 2;
+	// imgSize.height = HEIGHT * 2;
 	
-	for(int i = 0;i < imgSize.width; i++) {
-		for(int j = 0;j < imgSize.height; j++) {
-			((uchar*)(image->imageData + image->widthStep * j))[i] = (char)depth_255[i * WIDTH * 2 + j];
-		}
-	}
-	cvSaveImage(str.c_str(), image);
+	// for(int i = 0;i < imgSize.width; i++) {
+	// 	for(int j = 0;j < imgSize.height; j++) {
+	// 		((uchar*)(image->imageData + image->widthStep * j))[i] = (char)depth_255[i * WIDTH * 2 + j];
+	// 	}
+	// }
+	// cvSaveImage(str.c_str(), image);
 }
 
 void Mesh::faceToMatrix(MatrixXf& fMatrix) {
@@ -441,6 +441,17 @@ MatrixXf Mesh::scalePoints(MatrixXf coor, MatrixXf center, MatrixXf size) {
 	return coornew;
 }
 
+void Mesh::uint2uchar(unsigned int in, unsigned char* out) {
+	out[0] = (in & 0x00ff0000) >> 16;
+	out[1] = (in & 0x0000ff00) >> 8;
+	out[2] =  in & 0x000000ff;
+}
+
+unsigned int Mesh:: uchar2uint(unsigned char* in) {
+	unsigned int out = (((unsigned int)(in[0])) << 16) + (((unsigned int)(in[1])) << 8) + ((unsigned int)(in[2]));
+	return out;
+}
+
 void Mesh::mexFunction(MatrixXf P, int width, int height, 
 					   MatrixXf vMat, MatrixXf fMatrix, 
 					   unsigned int* result, int &resultNum, 
@@ -496,70 +507,69 @@ void Mesh::mexFunction(MatrixXf P, int width, int height,
 // 	OSMesaPixelStore(OSMESA_Y_UP, 0);
 
 // 	// Step 2: Setup basic OpenGL setting
-// 	glEnable(GL_DEPTH_TEST);
-// 	glDisable(GL_LIGHTING);
-// 	glDisable(GL_CULL_FACE);
-// 	//glEnable(GL_CULL_FACE);
-// 	//glCullFace(GL_BACK);
-// 	glPolygonMode(GL_FRONT, GL_FILL);
-// 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-// 	//glClearColor(m_clearColor[0], m_clearColor[1], m_clearColor[2], 1.0f); // this line seems useless
-// 	glViewport(0, 0, m_width, m_height);
+	glEnable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_CULL_FACE);
+	//glEnable(GL_CULL_FACE);
+	//glCullFace(GL_BACK);
+	glPolygonMode(GL_FRONT, GL_FILL);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	//glClearColor(m_clearColor[0], m_clearColor[1], m_clearColor[2], 1.0f); // this line seems useless
+	glViewport(0, 0, m_width, m_height);
 
-// 	// Step 3: Set projection matrices
-// 	double scale = (0x0001) << m_level;
-// 	double final_matrix[16];
+	// Step 3: Set projection matrices
+	double scale = (0x0001) << m_level;
+	double final_matrix[16];
 
-// 	// new way: faster way by reuse computation and symbolic derive. See sym_derive.m to check the math.
-// 	double inv_width_scale  = 1.0 / (m_width * scale);
-// 	double inv_height_scale = 1.0 / (m_height * scale);
-// 	double inv_width_scale_1 = inv_width_scale - 1.0;
-// 	double inv_height_scale_1_s = -(inv_height_scale - 1.0);
-// 	double inv_width_scale_2 = inv_width_scale * 2.0;
-// 	double inv_height_scale_2_s = -inv_height_scale * 2.0;
-// 	double m_far_a_m_near = m_far + m_near;
-// 	double m_far_s_m_near = m_far - m_near;
-// 	double m_far_d_m_near = m_far_a_m_near / m_far_s_m_near;
-// 	final_matrix[ 0] = projection[2 + 0 * 3] * inv_width_scale_1 + projection[0 + 0 * 3] * inv_width_scale_2;
-// 	final_matrix[ 1] = projection[2 + 0 * 3] * inv_height_scale_1_s + projection[1 + 0 * 3] * inv_height_scale_2_s;
-// 	final_matrix[ 2] = projection[2 + 0 * 3] * m_far_d_m_near;
-// 	final_matrix[ 3] = projection[2 + 0 * 3];
-// 	final_matrix[ 4] = projection[2 + 1 * 3] * inv_width_scale_1 + projection[0 + 1 * 3] * inv_width_scale_2;
-// 	final_matrix[ 5] = projection[2 + 1 * 3] * inv_height_scale_1_s + projection[1 + 1 * 3] * inv_height_scale_2_s; 
-// 	final_matrix[ 6] = projection[2 + 1 * 3] * m_far_d_m_near;    
-// 	final_matrix[ 7] = projection[2 + 1 * 3];
-// 	final_matrix[ 8] = projection[2 + 2 * 3] * inv_width_scale_1 + projection[0 + 2 * 3] * inv_width_scale_2; 
-// 	final_matrix[ 9] = projection[2 + 2 * 3] * inv_height_scale_1_s + projection[1 + 2 * 3] * inv_height_scale_2_s;
-// 	final_matrix[10] = projection[2 + 2 * 3] * m_far_d_m_near;
-// 	final_matrix[11] = projection[2 + 2 * 3];
-// 	final_matrix[12] = projection[2 + 3 * 3] * inv_width_scale_1 + projection[0 + 3 * 3] * inv_width_scale_2;
-// 	final_matrix[13] = projection[2 + 3 * 3] * inv_height_scale_1_s + projection[1 + 3 * 3] * inv_height_scale_2_s;  
-// 	final_matrix[14] = projection[2 + 3 * 3] * m_far_d_m_near - (2 * m_far * m_near) / m_far_s_m_near;
-// 	final_matrix[15] = projection[2 + 3 * 3];
+	// new way: faster way by reuse computation and symbolic derive. See sym_derive.m to check the math.
+	double inv_width_scale  = 1.0 / (m_width * scale);
+	double inv_height_scale = 1.0 / (m_height * scale);
+	double inv_width_scale_1 = inv_width_scale - 1.0;
+	double inv_height_scale_1_s = -(inv_height_scale - 1.0);
+	double inv_width_scale_2 = inv_width_scale * 2.0;
+	double inv_height_scale_2_s = -inv_height_scale * 2.0;
+	double m_far_a_m_near = m_far + m_near;
+	double m_far_s_m_near = m_far - m_near;
+	double m_far_d_m_near = m_far_a_m_near / m_far_s_m_near;
+	final_matrix[ 0] = projection[2 + 0 * 3] * inv_width_scale_1 + projection[0 + 0 * 3] * inv_width_scale_2;
+	final_matrix[ 1] = projection[2 + 0 * 3] * inv_height_scale_1_s + projection[1 + 0 * 3] * inv_height_scale_2_s;
+	final_matrix[ 2] = projection[2 + 0 * 3] * m_far_d_m_near;
+	final_matrix[ 3] = projection[2 + 0 * 3];
+	final_matrix[ 4] = projection[2 + 1 * 3] * inv_width_scale_1 + projection[0 + 1 * 3] * inv_width_scale_2;
+	final_matrix[ 5] = projection[2 + 1 * 3] * inv_height_scale_1_s + projection[1 + 1 * 3] * inv_height_scale_2_s; 
+	final_matrix[ 6] = projection[2 + 1 * 3] * m_far_d_m_near;    
+	final_matrix[ 7] = projection[2 + 1 * 3];
+	final_matrix[ 8] = projection[2 + 2 * 3] * inv_width_scale_1 + projection[0 + 2 * 3] * inv_width_scale_2; 
+	final_matrix[ 9] = projection[2 + 2 * 3] * inv_height_scale_1_s + projection[1 + 2 * 3] * inv_height_scale_2_s;
+	final_matrix[10] = projection[2 + 2 * 3] * m_far_d_m_near;
+	final_matrix[11] = projection[2 + 2 * 3];
+	final_matrix[12] = projection[2 + 3 * 3] * inv_width_scale_1 + projection[0 + 3 * 3] * inv_width_scale_2;
+	final_matrix[13] = projection[2 + 3 * 3] * inv_height_scale_1_s + projection[1 + 3 * 3] * inv_height_scale_2_s;  
+	final_matrix[14] = projection[2 + 3 * 3] * m_far_d_m_near - (2 * m_far * m_near) / m_far_s_m_near;
+	final_matrix[15] = projection[2 + 3 * 3];
 
-// 	// matrix is ready. use it
-// 	glMatrixMode(GL_PROJECTION);
-// 	glLoadIdentity();
-// 	glMatrixMode(GL_MODELVIEW);
-// 	glLoadIdentity();
+	// matrix is ready. use it
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
-// 	// Step 3: render the mesh with encoded color from their ID
-// 	unsigned char colorBytes[3];
-// 	unsigned int base_offset;
+	// Step 3: render the mesh with encoded color from their ID
+	unsigned char colorBytes[3];
+	unsigned int base_offset;
 
-// 	base_offset = 1;
-// 	glBegin(GL_TRIANGLES);
-// 	for (unsigned int i = 0; i < num_face; ++i) {
-// 		uint2uchar(base_offset+i,colorBytes);
-// 		glColor3ubv(colorBytes);
+	base_offset = 1;
+	glBegin(GL_TRIANGLES);
+	for (unsigned int i = 0; i < num_face; ++i) {
+		uint2uchar(base_offset+i,colorBytes);
+		glColor3ubv(colorBytes);
 
-// 		glVertex3dv(vertex + 3 * (*face++));
-// 		glVertex3dv(vertex + 3 * (*face++));
-// 		glVertex3dv(vertex + 3 * (*face++));
-// 		*face++; 
-// 	}
-// 	glEnd();
-// 	glFinish();
+		glVertex3dv(vertex + 3 * (*face++));
+		glVertex3dv(vertex + 3 * (*face++));
+		glVertex3dv(vertex + 3 * (*face++));
+	}
+	glEnd();
+	glFinish();
 
 // 	unsigned int* pDepthBuffer;
 // 	GLint outWidth, outHeight, bitPerDepth;
