@@ -15,7 +15,6 @@ public:
 
     // Temp Test Method
     ObjBuffer tempTest() {
-
         ChairBuffer chair1 = chairs[rand() % chairs.size()];
         ChairBuffer chair2 = chairs[rand() % chairs.size()];
         ChairBuffer chair3 = chairs[rand() % chairs.size()];
