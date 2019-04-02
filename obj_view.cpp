@@ -34,6 +34,9 @@
 #include <string>
 // List files
 #include <experimental/filesystem>
+#include <cstdlib>
+#include <fstream>
+
 
 // Includes for the GLTexture class.
 #include <algorithm>
@@ -65,13 +68,7 @@
 #include "ChairMixer.h"
 #include "Mesh.h"
 
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::string;
-using std::vector;
-using std::pair;
-using std::to_string;
+using namespace std;
 
 using nanogui::Screen;
 using nanogui::Window;
@@ -348,8 +345,18 @@ public:
                 objs[idx]->setCallback([this, objname, scorelabel] {
                     ObjViewApp::fileName = objname;
                     mCanvas->loadObj(fileName);
-                    string score = "8";
-                    scorelabel->setCaption("Score:  " + score);
+                    float score = 0.0;
+                    if(system("/usr/bin/python score.py 1") == 0){
+                        ifstream file;
+                        file.open("score.txt");
+                        if (!file) {
+                            cout << "Unable to open file";
+                            exit(1); 
+                        }
+                        file >> score;
+                        file.close();
+                        scorelabel->setCaption("Score:  " + to_string(score));
+                    }
                 });
             }
             performLayout();           
@@ -399,6 +406,7 @@ private:
 };
 
 int main(int /* argc */, char ** /* argv */) {
+
     try {
         srand (time(NULL));
         nanogui::init();
@@ -419,7 +427,6 @@ int main(int /* argc */, char ** /* argv */) {
             std::cerr << error_msg << endl;
         #endif
         return -1;
-    }
-
+    } 
     return 0;
 }
