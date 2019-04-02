@@ -93,7 +93,7 @@ public:
         using namespace nanogui;
         
         mShader.initFromFiles("a_smooth_shader", "StandardShading.vertexshader", "StandardShading.fragmentshader");
-        mArcball.setSize({400,400});
+        mArcball.setSize({400,500});
 
         // After binding the shader to the current context we can send data to opengl that will be handled
         // by the vertex shader and then by the fragment shader, in that order.
@@ -121,7 +121,7 @@ public:
         mShader.setUniform("V", V);
 
         mTranslation = Vector3f(0, 0, 0);
-        mZoom = Vector3f(1.5, 1.5, 1.5);
+        mZoom = Vector3f(1.8, 1.8, 1.8);
 
         // This the light origin position in your environment, which is totally arbitrary
         // however it is better if it is behind the observer
@@ -281,18 +281,19 @@ public:
         Window *window = new Window(this, "Obj Viewer");
         window->setPosition(Vector2i(15, 15));
         window->setLayout(new GroupLayout());
-	
+
 	    // OpenGL canvas initialization
         mCanvas = new MyGLCanvas(window);
         mCanvas->setBackgroundColor({100, 100, 100, 255});
-        mCanvas->setSize({400, 400});
+        mCanvas->setSize({400, 500});
 
-    	// Create another window and insert widgets into it
+    	// Create widgets window and insert widgets into it
 	    Window *widgets = new Window(this, "Widgets");
         widgets->setPosition(Vector2i(485, 15));
         widgets->setLayout(new GroupLayout());
+	    widgets->setFixedSize(Vector2i(200, 550));
 
-	    // Open and save obj file
+	    // Open obj file
         new Label(widgets, "File dialog", "sans-bold", 20);
         Button *openBtn  = new Button(widgets, "Open");
         openBtn->setCallback([&] {
@@ -300,56 +301,90 @@ public:
             ObjViewApp::fileName = fileName;
             mCanvas->loadObj(fileName);
         });
+
+        // Save obj file
         Button *saveBtn = new Button(widgets, "Save");
         saveBtn->setCallback([&] {
             string fileName = file_dialog({ {"obj", "obj file"} }, true);
             mCanvas->writeObj(fileName);
         });
-         
-        Button *testBtn = new Button(widgets, "Test");
-        testBtn->setCallback([&] {
-            string folder = "Completion/";       
-            for(size_t i = 1; i <= 5; i++)
-            {  
-                string filename1 = folder + to_string(i) + ".obj";      
-                mCanvas->tempTest();
-                mCanvas->writeObj(filename1);
-            }
-            for (const auto & entry : experimental::filesystem::directory_iterator(folder))
-                cout << entry.path() << endl;
-                // Button *file1 = new Button(widgets, "1.obj");
-                // file1->setCallback([&] {
-                //     ObjViewApp::fileName = "Completion/1.obj";
-                //     mCanvas->loadObj(fileName);
-                // });
 
+        // Test button
+        Button *testBtn = new Button(widgets, "Test");
+
+        Label *chairslabel = new Label(widgets, "Chair Models", "sans-bold", 20);
+        chairslabel->setVisible(false);
+
+        // Generate chair obj buttons
+        vector<Button*> objs;
+        string folder = "Completion/";       
+        size_t n = 0; 
+        // count existing files in folder
+        for (const auto & entry : experimental::filesystem::directory_iterator(folder)){
+            // cout << entry.path() << endl;
+            n++;
+        }
+        if(n == 0) n = 5; // generate 5 objs in one test
+        for(size_t i = 0; i < n; i++){
+            Button *obj = new Button(widgets, "chair " + to_string(i) + ".obj");
+            obj->setVisible(false);  
+            objs.push_back(obj);  
+        }  
+        
+        // call back function for testBtn 
+        testBtn->setCallback([this,objs,chairslabel,n,folder]() {
+            // bool wasVisible = objs[0]->visible();
+            for(size_t idx = 0; idx < n; idx++)
+            {  
+                string objname = folder + to_string(idx) + ".obj";
+                mCanvas->tempTest();
+                mCanvas->writeObj(objname);
+
+                chairslabel->setVisible(true);
+                objs[idx]->setVisible(true);
+                objs[idx]->setCallback([this, objname] {
+                    ObjViewApp::fileName = objname;
+                    mCanvas->loadObj(fileName);
+                });
+            }
+            performLayout();           
         });            
 
-        Button *file2 = new Button(widgets, "2.obj");
-        file2->setCallback([&] {
-            ObjViewApp::fileName = "Completion/2.obj";
-            mCanvas->loadObj(fileName);
-        });
-        Button *file3 = new Button(widgets, "3.obj");
-        file3->setCallback([&] {
-            ObjViewApp::fileName = "Completion/3.obj";
-            mCanvas->loadObj(fileName);
-        });
-        Button *file4 = new Button(widgets, "4.obj");
-        file4->setCallback([&] {
-            ObjViewApp::fileName = "Completion/4.obj";
-            mCanvas->loadObj(fileName);
-        });
-        Button *file5 = new Button(widgets, "5.obj");
-        file5->setCallback([&] {
-            ObjViewApp::fileName = "Completion/5.obj";
-            mCanvas->loadObj(fileName);
-        });
+
+
+
+
+        // Button *obj1;
+        // 
+        // size_t i = 0;
+        // size_t n = 5; // how many objs in one test
+        // for (const auto & entry : experimental::filesystem::directory_iterator(folder)){
+        //     i++;           
+        //     cout << entry.path() << endl;
+        //     obj1 = new Button(widgets,  to_string(i) + ".obj");
+        //     obj1->setVisible(false);    
+        // }   
+        // obj1 -= n-1;
+
+        // testBtn->setCallback([this,obj1,n,folder]() {
+        //     for(size_t i = 1; i <= n; i++)
+        //     {  
+        //         string filename1 = folder + to_string(i) + ".obj";      
+        //         mCanvas->tempTest();
+        //         mCanvas->writeObj(filename1);
+        //         bool wasVisible = obj1->visible();
+        //         obj1->setVisible(!wasVisible);
+        //     }
+        //     performLayout();           
+        // });            
+
         
-        new Label(widgets, "Views", "sans-bold", 20);
-        Widget *panelViews = new Widget(widgets);
-        panelViews->setLayout(new BoxLayout(Orientation::Horizontal,
-                                       Alignment::Middle, 0, 2));
+// obj1->setCallback([&] {
+//                     ObjViewApp::fileName = filename1;
+//                     mCanvas->loadObj(fileName);
+//                 });
+//                 obj1++;
+ 
         
     	// Shading mode
         new Label(widgets, "Shading Mode", "sans-bold", 20);
