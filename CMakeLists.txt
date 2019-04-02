@@ -1,8 +1,7 @@
 cmake_minimum_required(VERSION 3.5)
 project(nanogui_test)
 
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++14")
-
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 add_subdirectory(lib/nanogui)
 include_directories(lib/nanogui/include)
 include_directories(${NANOGUI_EXTRA_INCS})
@@ -26,5 +25,5 @@ set(OBJ_SOURCE_FILES
     Constants.h)
 
 add_executable(chair ${OBJ_SOURCE_FILES} ${MyResources})
-target_link_libraries(chair nanogui ${NANOGUI_EXTRA_LIBS})
+target_link_libraries(chair nanogui ${NANOGUI_EXTRA_LIBS} stdc++fs)
 
