@@ -32,13 +32,14 @@
 #include <nanogui/glcanvas.h>
 #include <iostream>
 #include <string>
+// List files
+// #include <filesystem>
 
 // Includes for the GLTexture class.
 #include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <utility>
-
 
 #if defined(__GNUC__)
 #  pragma GCC diagnostic ignored "-Wmissing-field-initializers"
@@ -92,29 +93,42 @@ public:
         using namespace nanogui;
         
         mShader.initFromFiles("a_smooth_shader", "StandardShading.vertexshader", "StandardShading.fragmentshader");
-        
+        mArcball.setSize({400,400});
+
         // After binding the shader to the current context we can send data to opengl that will be handled
         // by the vertex shader and then by the fragment shader, in that order.
         // if you want to know more about modern opengl pipeline take a look at this link
         // https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview
         mShader.bind();
 
+        mShader.uploadAttrib("vertexPosition_modelspace", positions);
+        mShader.uploadAttrib("color", colors);
+        mShader.uploadAttrib("vertexNormal_modelspace", normals);
+
+        //ProjectionMatrixID
+        float fovy = 90.0f, aspect = 1.0f;
+        float near = 0.1f, far = 100.0f;
+        float top = near * tan(fovy * M_PI / 360);
+        float bottom = -top;
+        float right = top * aspect;
+        float left = -right;
+        Matrix4f P = frustum(left, right, bottom, top, near, far);
+        
+        mShader.setUniform("P", P);
+
         // ViewMatrixID
         // change your rotation to work on the camera instead of rotating the entire world with the MVP matrix
-        Matrix4f V;
-        V.setIdentity();
+        Matrix4f V = lookAt(Vector3f(0,0,4), Vector3f(0,0,0), Vector3f(0,1,0));
         mShader.setUniform("V", V);
-        
-        //ModelMatrixID
-        Matrix4f M;
-        M.setIdentity();
-        mShader.setUniform("M", M);
-        
+
+        mTranslation = Vector3f(0, 0, 0);
+        mScale = Vector3f(1, 1, 1);
+
         // This the light origin position in your environment, which is totally arbitrary
         // however it is better if it is behind the observer
         mShader.setUniform("LightPosition_worldspace", Vector3f(2,-6,-4));
 
-        setIsometricView();
+        // setIsometricView();
     }
 
     //flush data on call
@@ -127,11 +141,18 @@ public:
     void loadObj(string fileName) {
         delete mMesh;
         mMesh = new Mesh(fileName);
-
         positions = mMesh->getPositions();
+        // cout << "po" << positions(0,0) << endl;
+        
         normals = mMesh->getNormals(&positions);
+        // cout << "no" << normals(0,0) << endl;
+
         smoothNormals = mMesh->getSmoothNormals(&normals);
+        // cout << "sm" <<  smoothNormals(0,0) << endl;
+
         colors = mMesh->getColors();
+        // cout << "co" <<  colors(0,0) << endl;
+
     }
 
     // Temp test method
@@ -143,8 +164,9 @@ public:
 
         delete mMesh;
         mMesh = new Mesh(mixed);
-
+        
         positions = mMesh->getPositions();
+        // cout << positions(0,0) << endl;
         normals = mMesh->getNormals(&positions);
         smoothNormals = mMesh->getSmoothNormals(&normals);
         colors = mMesh->getColors();
@@ -158,37 +180,86 @@ public:
         }
     }
 
-    void setFrontView() {
-        mMVP << -0.5, 0, 0, 0,
-                0, 0, 0.5, 0,
-                0, 0.5, 0, 0,
-                0, 0, 0, 1;
+    // void setFrontView() {
+    //     mMVP << -0.5, 0, 0, 0,
+    //             0, 0, 0.5, 0,
+    //             0, 0.5, 0, 0,
+    //             0, 0, 0, 1;
+    // }
+
+    // void setSideView() {
+    //     mMVP << 0, -0.5, 0, 0,
+    //             0, 0, 0.5, 0,
+    //             -0.5, 0, 0, 0,
+    //             0, 0, 0, 1;
+    // }
+
+    // void setTopView() {
+    //     mMVP << -0.5, 0, 0, 0,
+    //             0, 0.5, 0, 0,
+    //             0, 0, -0.5, 0,
+    //             0, 0, 0, 1;
+    // }
+
+    // void setIsometricView() {
+    //     mMVP << -0.379379, -0.325686, -1.49012e-08, 0,
+    //             -0.0816341, 0.0950923, 0.484039, 0,
+    //             -0.315289, 0.367268, -0.125326, 0,
+    //             0, 0, 0, 1;
+    // }
+
+    // Method to update the rotation on each axis
+    void setRotation(nanogui::Matrix4f matRotation) {
+        mRotation = matRotation;
     }
 
-    void setSideView() {
-        mMVP << 0, -0.5, 0, 0,
-                0, 0, 0.5, 0,
-                -0.5, 0, 0, 0,
-                0, 0, 0, 1;
+    // Method to update the rotation on each axis
+    void setTranslation(nanogui::Vector3f vTranslation) {
+        mTranslation = vTranslation;
     }
 
-    void setTopView() {
-        mMVP << -0.5, 0, 0, 0,
-                0, 0.5, 0, 0,
-                0, 0, -0.5, 0,
-                0, 0, 0, 1;
-    }
-
-    void setIsometricView() {
-        mMVP << -0.379379, -0.325686, -1.49012e-08, 0,
-                -0.0816341, 0.0950923, 0.484039, 0,
-                -0.315289, 0.367268, -0.125326, 0,
-                0, 0, 0, 1;
+    // Method to set the zooming 
+    void setScale(nanogui::Vector3f vScale) {
+        mScale = vScale;
     }
 
     // Method to set shading mode
     void setShadingMode(float fShadingMode) {
         mShadingMode = fShadingMode;
+    }
+
+    virtual bool mouseButtonEvent(const Vector2i &p, int button, bool down, int modifiers) override {
+        if (button == GLFW_MOUSE_BUTTON_2) {    // right click
+            mArcball.button(p, down);
+            return true;
+        }
+        return false;
+    }
+
+    virtual bool mouseMotionEvent(const Eigen::Vector2i &p, const Vector2i &rel, int button, int modifiers) override {
+        if (button == GLFW_MOUSE_BUTTON_3 ) {   // right click
+            mArcball.motion(p);
+            return true;
+        }
+        return false;
+    }
+
+    virtual bool mouseDragEvent(const Vector2i &p, const Vector2i &rel, int button, int modifiers) override {
+        if (button == GLFW_MOUSE_BUTTON_2) {    // left click
+            setTranslation(mTranslation + Eigen::Vector3f(rel.x()/80.0f, -rel.y()/80.0f, 0.0f));
+            return true;
+        }
+        return false;
+    }
+
+    virtual bool scrollEvent(const Vector2i &p, const Vector2f &rel) override {
+        float scaleFactor = rel.y()/4.0f;
+        if(mScale.x() + scaleFactor <= 0 || mScale.y() + scaleFactor <= 0 || mScale.z() + scaleFactor <= 0)
+        {
+            return false;
+        }
+        setScale(mScale + Eigen::Vector3f(scaleFactor, scaleFactor, scaleFactor));
+        return true;
     }
 
     //OpenGL calls this method constantly to update the screen.
@@ -205,8 +276,18 @@ public:
         mShader.uploadAttrib("color", colors);
 	    mShader.uploadAttrib("vertexNormal_modelspace", shadingNormal);
 
+        setRotation(mArcball.matrix());
+        //ModelMatrixID
+        Matrix4f M = translate(mTranslation) * mRotation * scale(mScale);
+        mShader.setUniform("M", M);
+
         // Reset MVP
-        mShader.setUniform("MVP", mMVP);
+        // mMVP.setIdentity();
+        // mMVP.topLeftCorner<3,3>() = Eigen::Matrix3f(Eigen::AngleAxisf(mRotation[0], Vector3f::UnitX()) *
+        //                                            Eigen::AngleAxisf(mRotation[1],  Vector3f::UnitY()) *
+        //                                            Eigen::AngleAxisf(mRotation[2], Vector3f::UnitZ())) * mZooming;
+        // mMVP.topRightCorner<3,1>() = Eigen::Vector3f(mTranslation[0],mTranslation[1],mTranslation[2])* 0.25f;
+
 
 	    // If enabled, does depth comparisons and update the depth buffer.
 	    // Avoid changing if you are unsure of what this means.
@@ -226,12 +307,20 @@ public:
 //Need to be updated if a interface element is interacting with something that is inside the scope of MyGLCanvas
 private:
     Mesh *mMesh = NULL;
-    Matrix4f mMVP;
+    // Matrix4f mMVP;
     MatrixXf positions;
     MatrixXf normals;
     MatrixXf smoothNormals;
     MatrixXf colors;
     nanogui::GLShader mShader;
+    Eigen::Matrix4f mRotation;
+    Eigen::Vector3f mScale;
+    Eigen::Vector3f mTranslation;
+    nanogui::Arcball mArcball;
+
+    // Eigen::Vector3f mRotation;
+    // Eigen::Vector3f mTranslation;
+    // float mZooming = 0.5f;
     int mShadingMode = 0;
 };
 
@@ -251,67 +340,107 @@ public:
         mCanvas->setSize({400, 400});
 
     	// Create another window and insert widgets into it
-	    Window *anotherWindow = new Window(this, "Widgets");
-        anotherWindow->setPosition(Vector2i(485, 15));
-        anotherWindow->setLayout(new GroupLayout());
+	    Window *widgets = new Window(this, "Widgets");
+        widgets->setPosition(Vector2i(485, 15));
+        widgets->setLayout(new GroupLayout());
 
 	    // Open and save obj file
-        new Label(anotherWindow, "File dialog", "sans-bold", 20);
-        Button *openBtn  = new Button(anotherWindow, "Open");
+        new Label(widgets, "File dialog", "sans-bold", 20);
+        Button *openBtn  = new Button(widgets, "Open");
         openBtn->setCallback([&] {
             string fileName = file_dialog({ {"obj", "obj file"} }, false);
             ObjViewApp::fileName = fileName;
             mCanvas->loadObj(fileName);
         });
-        Button *saveBtn = new Button(anotherWindow, "Save");
+        Button *saveBtn = new Button(widgets, "Save");
         saveBtn->setCallback([&] {
             string fileName = file_dialog({ {"obj", "obj file"} }, true);
             mCanvas->writeObj(fileName);
         });
-        Button *testBtn = new Button(anotherWindow, "Test");
-        testBtn->setCallback([&] {
-            mCanvas->tempTest();
-        });
+        // Button *testBtn = new Button(widgets, "Test");
 
-        new Label(anotherWindow, "Views", "sans-bold", 20);
-        Widget *panelViews = new Widget(anotherWindow);
+        // testBtn->setCallback([&] {
+        //     mCanvas->tempTest();
+        //     mCanvas->writeObj("Completion/1.obj");
+        //     // mCanvas->tempTest();
+        //     // mCanvas->writeObj("Completion/2.obj");
+        //     // string folder = "Completion/";           
+        //     // for(size_t i = 1; i <= 5; i++)
+        //     // {
+        //     //     string filename1 = folder + to_string(i) + ".obj";               
+        //     //     mCanvas->writeObj(filename1);
+        //     //     // Todo : Fix button bug => Failed to measure available space: The specified location is not supported
+                                      
+        //     // // for (const auto & entry : filesystem::directory_iterator(folder))
+        //     // //     cout << entry.path() << endl;
+        //     // }
+        // });
+
+        // Button *file1 = new Button(widgets, "1.obj");
+        // file1->setCallback([&] {
+        //     ObjViewApp::fileName = "Completion/1.obj";
+        //     mCanvas->loadObj(fileName);
+        // });
+        // Button *file2 = new Button(widgets, "2.obj");
+        // file2->setCallback([&] {
+        //     ObjViewApp::fileName = "Completion/2.obj";
+        //     mCanvas->loadObj(fileName);
+        // });
+        // Button *file3 = new Button(widgets, "3.obj");
+        // file3->setCallback([&] {
+        //     ObjViewApp::fileName = "Completion/3.obj";
+        //     mCanvas->loadObj(fileName);
+        // });
+        // Button *file4 = new Button(widgets, "4.obj");
+        // file4->setCallback([&] {
+        //     ObjViewApp::fileName = "Completion/4.obj";
+        //     mCanvas->loadObj(fileName);
+        // });
+        // Button *file5 = new Button(widgets, "5.obj");
+        // file5->setCallback([&] {
+        //     ObjViewApp::fileName = "Completion/5.obj";
+        //     mCanvas->loadObj(fileName);
+        // });
+        
+        new Label(widgets, "Views", "sans-bold", 20);
+        Widget *panelViews = new Widget(widgets);
         panelViews->setLayout(new BoxLayout(Orientation::Horizontal,
                                        Alignment::Middle, 0, 2));
         
-        Button *frontView = new Button(panelViews, "Front");
-        frontView->setCallback([&] {
-            mCanvas->setFrontView();
-        });
+        // Button *frontView = new Button(panelViews, "Front");
+        // frontView->setCallback([&] {
+        //     mCanvas->setFrontView();
+        // });
 
-        Button *sideView = new Button(panelViews, "Side");
-        sideView->setCallback([&] {
-            mCanvas->setSideView();
-        });
+        // Button *sideView = new Button(panelViews, "Side");
+        // sideView->setCallback([&] {
+        //     mCanvas->setSideView();
+        // });
 
-        Button *topView = new Button(panelViews, "Top");
-        topView->setCallback([&] {
-            mCanvas->setTopView();
-        });
+        // Button *topView = new Button(panelViews, "Top");
+        // topView->setCallback([&] {
+        //     mCanvas->setTopView();
+        // });
 
-        Button *isometricView = new Button(panelViews, "Isometric");
-        isometricView->setCallback([&] {
-            mCanvas->setIsometricView();
-        });
+        // Button *isometricView = new Button(panelViews, "Isometric");
+        // isometricView->setCallback([&] {
+        //     mCanvas->setIsometricView();
+        // });
 
     	// Shading mode
-        new Label(anotherWindow, "Shading Mode", "sans-bold", 20);
-        Widget *panelCombo = new Widget(anotherWindow);
+        new Label(widgets, "Shading Mode", "sans-bold", 20);
+        Widget *panelCombo = new Widget(widgets);
         panelCombo->setLayout(new BoxLayout(Orientation::Horizontal,
                                        Alignment::Middle, 0, 2));
 
-        ComboBox *combo = new ComboBox(anotherWindow, { "Flat", "Smooth", "Wireframe", "Flat+Wireframe", "Smooth+Wireframe"} );
+        ComboBox *combo = new ComboBox(widgets, { "Flat", "Smooth", "Wireframe", "Flat+Wireframe", "Smooth+Wireframe"} );
         combo->setCallback([&](int value) {
             mCanvas->setShadingMode(value);
         });
 
         // Quit button
-        new Label(anotherWindow, "Quit", "sans-bold", 20);
-        Button *quitBtn = new Button(anotherWindow, "Quit");
+        new Label(widgets, "Quit", "sans-bold", 20);
+        Button *quitBtn = new Button(widgets, "Quit");
         quitBtn->setCallback([&] {
             auto dlg = new MessageDialog(this, MessageDialog::Type::Warning, "Quit", "Are you sure to shut down?", "No", "Yes", true);
             dlg->setCallback([](int result) { 
@@ -319,6 +448,13 @@ public:
                     nanogui::shutdown();
                 }});
         });
+
+    	// // Create another window for rotation, translation and zooming
+	    // Window *manipulateWindow = new Window(this, "Manipulation");
+        // manipulateWindow->setPosition(Vector2i(15, 600));
+        // manipulateWindow->setLayout(new GroupLayout());
+
+
 
 	    //Method to assemble the interface defined before it is called
         performLayout();
