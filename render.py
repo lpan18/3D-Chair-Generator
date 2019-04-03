@@ -25,7 +25,7 @@ def find_camera():
 
 # load one chair model
 
-def generate(filepath, index):
+def generate(filepath, index, view):
     # file_path = os.path.join('/Users/trailingend/Documents/SFU/CMPT764/chair-modeling', 'ChairModels/chair0004.obj')
     file_path = filepath
     chair_objs = bpy.ops.import_scene.obj(filepath = file_path)
@@ -40,18 +40,33 @@ def generate(filepath, index):
         camera_obj = bpy.context.object
     bpy.context.scene.camera = camera_obj
     print("name of cam", camera_obj.name)
-    camera_obj.location.x = 0.0
-    camera_obj.location.y = -0.5
-    camera_obj.location.z = -4.0
-    camera_obj.rotation_euler.x = 0.0
-    camera_obj.rotation_euler.y = math.pi
-    camera_obj.rotation_euler.z = math.pi
+    if view == 'front':
+        camera_obj.location.x = 0.0
+        camera_obj.location.y = -0.5
+        camera_obj.location.z = -4.0
+        camera_obj.rotation_euler.x = 0.0
+        camera_obj.rotation_euler.y = math.pi
+        camera_obj.rotation_euler.z = math.pi
+    elif view == 'top':
+        camera_obj.location.x = 0.0
+        camera_obj.location.y = -4.5
+        camera_obj.location.z = -0.05
+        camera_obj.rotation_euler.x = - math.pi / 2
+        camera_obj.rotation_euler.y = math.pi
+        camera_obj.rotation_euler.z = math.pi
+    elif view == 'side':
+        camera_obj.location.x = -4.0
+        camera_obj.location.y = -0.3
+        camera_obj.location.z = 0
+        camera_obj.rotation_euler.x = 0
+        camera_obj.rotation_euler.y = math.pi / 2
+        camera_obj.rotation_euler.z = math.pi
 
     # mist 1-15
     world = bpy.data.worlds["World"]
     world.mist_settings.use_mist = True
     world.mist_settings.start = 1.0
-    world.mist_settings.depth = 15.0
+    world.mist_settings.depth = 8.0
 
     # node
     scene = bpy.data.scenes["Scene"]
@@ -64,8 +79,8 @@ def generate(filepath, index):
     render_layer = nodes.new(type="CompositorNodeRLayers") # type = 'R_LAYERS'
     composite_layer = nodes.new(type="CompositorNodeComposite") # type = 'COMPOSITE'
     map_range = nodes.new(type="CompositorNodeMapRange") # type ='MAP_RANGE'
-    map_range.inputs[1].default_value = 3.65 
-    map_range.inputs[2].default_value = 5.0
+    map_range.inputs[1].default_value = 3.5
+    map_range.inputs[2].default_value = 7.0
 
     # link nodes
     links = scene.node_tree.links
@@ -74,7 +89,7 @@ def generate(filepath, index):
 
     # render and image
     bpy.context.scene.render.image_settings.file_format='BMP'
-    bpy.context.scene.render.filepath = os.path.join("/Users/trailingend/Documents/SFU/CMPT764/chair-modeling", "ChairImages/model%0.2d-front.jpg" % index)
+    bpy.context.scene.render.filepath = os.path.join("/Users/trailingend/Documents/SFU/CMPT764/chair-modeling", "ChairImages/model%0.2d-" % index + view + ".jpg")
     bpy.ops.render.render(use_viewport=True, write_still=True)
 
     # delete chair object
@@ -89,4 +104,6 @@ for root, dirs, files in os.walk('/Users/trailingend/Documents/SFU/CMPT764/chair
 
 for i in range(0, len(filenames)):
     # print(filenames[i])
-    generate(filenames[i], i)
+    generate(filenames[i], i, "front")
+    generate(filenames[i], i, "top")
+    generate(filenames[i], i, "side")
