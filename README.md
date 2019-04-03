@@ -1,4 +1,4 @@
 # chair-modeling
 mix-n-match modeling of chairs
 
-`blender test.blend --background --python render.py`
+`blender example.blend --background --python render.py`
