@@ -288,7 +288,7 @@ public:
 	    Window *widgets = new Window(this, "Widgets");
         widgets->setPosition(Vector2i(560, 15));
         widgets->setLayout(new GroupLayout());
-	    widgets->setFixedSize(Vector2i(200, 600));
+	    widgets->setFixedSize(Vector2i(200, 700));
 
 	    // Open obj file
         new Label(widgets, "File dialog", "sans-bold", 20);
@@ -323,12 +323,13 @@ public:
             // cout << entry.path() << endl;
             n++;
         }
-        if(n == 0) n = 5; // generate 5 objs in one test
-        for(size_t i = 0; i < n; i++){
-            Button *obj = new Button(widgets, "chair " + to_string(i) + ".obj");
-            obj->setVisible(false);  
-            objs.push_back(obj);  
-        }  
+        n = 1000;
+        // if(n == 0) n = 5; // generate 5 objs in one test
+        // for(size_t i = 0; i < n; i++){
+        //     Button *obj = new Button(widgets, "chair " + to_string(i) + ".obj");
+        //     obj->setVisible(false);  
+        //     objs.push_back(obj);  
+        // }  
         
         // call back function for testBtn 
         testBtn->setCallback([this,objs,chairslabel,scorelabel,n,folder]() {
@@ -339,25 +340,25 @@ public:
                 mCanvas->tempTest();
                 mCanvas->writeObj(objname);
 
-                chairslabel->setVisible(true);
-                scorelabel->setVisible(true);
-                objs[idx]->setVisible(true);
-                objs[idx]->setCallback([this, objname, scorelabel] {
-                    ObjViewApp::fileName = objname;
-                    mCanvas->loadObj(fileName);
-                    float score = 0.0;
-                    if(system("/usr/bin/python score.py 1") == 0){
-                        ifstream file;
-                        file.open("score.txt");
-                        if (!file) {
-                            cout << "Unable to open file";
-                            exit(1); 
-                        }
-                        file >> score;
-                        file.close();
-                        scorelabel->setCaption("Score:  " + to_string(score));
-                    }
-                });
+                // chairslabel->setVisible(true);
+                // scorelabel->setVisible(true);
+                // objs[idx]->setVisible(true);
+                // objs[idx]->setCallback([this, objname, scorelabel] {
+                //     ObjViewApp::fileName = objname;
+                //     mCanvas->loadObj(fileName);
+                //     float score = 0.0;
+                //     if(system("/usr/bin/python score.py 1") == 0){
+                //         ifstream file;
+                //         file.open("score.txt");
+                //         if (!file) {
+                //             cout << "Unable to open file";
+                //             exit(1); 
+                //         }
+                //         file >> score;
+                //         file.close();
+                //         scorelabel->setCaption("Score:  " + to_string(score));
+                //     }
+                // });
             }
             performLayout();           
         });            
