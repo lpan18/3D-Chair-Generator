@@ -23,9 +23,9 @@ void ChairMixer::readFolder(string path) {
 float getNeg() {
     float neg = rand() / (float)RAND_MAX * 0.1;
     if (neg > 0.05f) {
-        return 0.15; //neg + 0.05f;
+        return neg + 0.1f; // 0.15-0.2
     } else {
-        return -0.15;//neg - 0.15f;
+        return neg - 0.2f; //-0.15--0.2
     }
 }
 
