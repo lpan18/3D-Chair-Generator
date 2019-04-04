@@ -62,8 +62,11 @@ ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBu
     float negScale1 = getNegScale();
     float negScale2 = getNegScale();
     float negScale3 = getNegScale();
-    if(negOffset1.z() >= 0){
-        negOffset1.z() += 0.25;
+    if(negOffset2.y() <= 0){
+        negOffset2.y() -= 0.25;
+    }
+    if(negOffset2.z() <= 0){
+        negOffset2.z() -= 0.25;
     }
 
 // temp code end ============
@@ -73,7 +76,7 @@ ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBu
     float legScaleZ = (legScaleX + legScaleY) / 2;
     for (int i = legVI; i < backVI; i++) {
         Vector3f offset = mixed.vertices[i] - leg.bottomCenter;
-        offset = offset * negScale1 + negOffset1; // temp code
+        // offset = offset * negScale1 + negOffset1; // temp code
         mixed.vertices[i] = Vector3f(offset.x() * legScaleX,
                                      offset.y() * legScaleY,
                                      offset.z() * legScaleZ)
@@ -83,7 +86,7 @@ ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBu
     float backScale = seat.width / back.width;
     for (int i = backVI; i < armVI; i++) {
         Vector3f offset = (mixed.vertices[i] - back.backCenter) * backScale;
-        // offset = offset * negScale2 + negOffset2; // temp code
+        offset = offset * negScale2 + negOffset2; // temp code
         mixed.vertices[i] = offset + seat.backCenter;
     }
 
