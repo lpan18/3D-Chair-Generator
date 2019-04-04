@@ -338,7 +338,7 @@ public:
             // cout << entry.path() << endl;
             n++;
         }
-        if(n == 0) n = 5; // generate 5 objs in one test
+        if(n == 0) n = 10; // generate 5 objs in one test
         for(size_t i = 0; i < n; i++){
             Button *obj = new Button(widgets, "chair " + to_string(i) + ".obj");
             obj->setVisible(false);  
