@@ -36,6 +36,8 @@
 #include <experimental/filesystem>
 #include <cstdlib>
 #include <fstream>
+#include <stdio.h>
+#include <sys/stat.h>
 
 
 // Includes for the GLTexture class.
@@ -316,7 +318,20 @@ public:
 
         // Generate chair obj buttons
         vector<Button*> objs;
-        string folder = "Completion/";       
+        
+        // create output directory 
+        string folder = "Completion"; 
+        struct stat sb;
+        if (!(stat(folder.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode)))
+        {
+            const int dir_err = system("mkdir -p Completion");
+            if (-1 == dir_err)
+            {
+                printf("Error creating directory!n");
+                exit(1);
+            }
+        }
+
         size_t n = 0; 
         // count existing files in folder
         for (const auto & entry : experimental::filesystem::directory_iterator(folder)){
@@ -335,7 +350,7 @@ public:
             // bool wasVisible = objs[0]->visible();
             for(size_t idx = 0; idx < n; idx++)
             {  
-                string objname = folder + to_string(idx) + ".obj";
+                string objname = folder + "/"  + to_string(idx) + ".obj";
                 mCanvas->tempTest();
                 mCanvas->writeObj(objname);
 
