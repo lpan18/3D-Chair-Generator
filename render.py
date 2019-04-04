@@ -25,7 +25,7 @@ def find_camera():
 
 # load one chair model
 
-def generate(filepath, index, view):
+def generate(filepath, index, view, target_path):
     # file_path = os.path.join('/Users/trailingend/Documents/SFU/CMPT764/chair-modeling', 'ChairModels/chair0004.obj')
     file_path = filepath
     chair_objs = bpy.ops.import_scene.obj(filepath = file_path)
@@ -89,7 +89,7 @@ def generate(filepath, index, view):
 
     # render and image
     bpy.context.scene.render.image_settings.file_format='BMP'
-    bpy.context.scene.render.filepath = os.path.join("/Users/trailingend/Documents/SFU/CMPT764/chair-modeling", "ChairImages/model%0.2d-" % index + view + ".jpg")
+    bpy.context.scene.render.filepath = os.path.join(target_path, "model%0.2d-" % index + view + ".jpg")
     bpy.ops.render.render(use_viewport=True, write_still=True)
 
     # delete chair object
@@ -97,13 +97,15 @@ def generate(filepath, index, view):
 
 
 filenames = []
-for root, dirs, files in os.walk('/Users/trailingend/Documents/SFU/CMPT764/chair-modeling/ChairModels'):
+source_path = "/Users/trailingend/Documents/SFU/CMPT764/chair-modeling/ChairModelsLegOffset"
+target_path = "/Users/trailingend/Documents/SFU/CMPT764/chair-modeling/ChairImagesLegOffset"
+for root, dirs, files in os.walk(source_path):
     for file in files:
         if '.obj' in file:
             filenames.append(os.path.join(root, file))
 
 for i in range(0, len(filenames)):
     # print(filenames[i])
-    generate(filenames[i], i, "front")
-    generate(filenames[i], i, "top")
-    generate(filenames[i], i, "side")
+    generate(filenames[i], i, "front", target_path)
+    generate(filenames[i], i, "top", target_path)
+    generate(filenames[i], i, "side", target_path)

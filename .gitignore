@@ -43,5 +43,13 @@ python/
 subd
 mcaq
 chair
+ChairModelsBackOffset
+ChairModelsAllOffset
+ChairModelsLegOffset
+ChairImagesBackOffset
+ChairImagesAllOffset
+ChairImagesLegOffset
+ChairImagesTestOffset
+chairs-data
 cmake_install.cmake
 .DS_Store
