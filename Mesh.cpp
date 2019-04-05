@@ -119,8 +119,8 @@ void Mesh::readObjBuffer(ObjBuffer buffer) {
 	faces = new Face[mFaces];
 	w_edges = new W_edge[lW_edges];
 
-	center = buffer.center;
-	scale = buffer.scale;
+	center = buffer.bound.getCenter();
+	scale = buffer.bound.getScale();
 
 	for (int vertexi = 0; vertexi < nVertices; vertexi++) {
 		vertices[vertexi].p = buffer.vertices[vertexi];

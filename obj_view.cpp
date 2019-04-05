@@ -270,7 +270,6 @@ private:
     int mShadingMode = 0;
 };
 
-
 class ObjViewApp : public nanogui::Screen {
 public:
     ObjViewApp() : nanogui::Screen(Eigen::Vector2i(800, 700), "Chair Modeling", false) {
@@ -415,8 +414,6 @@ public:
 private:
     MyGLCanvas *mCanvas;
     string fileName;
-    int sdMode = 0;
-    int sdLevel = 0;
 };
 
 int main(int /* argc */, char ** /* argv */) {

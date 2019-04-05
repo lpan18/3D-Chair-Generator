@@ -65,7 +65,7 @@ ObjBuffer ObjBuffer::readObjFile(string filename) {
 	}
 
 	// Set Center and Scale
-	buffer.setCenterAndScale();
+	buffer.resetBound();
 
 	return buffer;
 }
@@ -102,15 +102,13 @@ ObjBuffer ObjBuffer::combineObjBuffers(vector<ObjBuffer> objBuffers) {
 		}
 	}
 
-	buffer.setCenterAndScale();
+	buffer.resetBound();
 	
 	return buffer;
 }
 
 ObjBuffer ObjBuffer::getGroup(string groupName) {
 	ObjBuffer buffer;
-	buffer.center = center;
-	buffer.scale = scale;
 
 	// First, get vCount and fCount and initialize buffer
 	int vCount = 0;
@@ -153,13 +151,7 @@ void ObjBuffer::free() {
 	delete []faces;
 }
 
-void ObjBuffer::setCenterAndScale() {
-	ObjBound bound = getBound();
-	center = bound.getCenter();
-	scale = bound.getScale();
-}
-
-ObjBound ObjBuffer::getBound() {
+void ObjBuffer::resetBound() {
 	float maxX, maxY, maxZ;
 	float minX, minY, minZ;
 	maxX = maxY = maxZ = -MAXVALUE;
@@ -174,27 +166,23 @@ ObjBound ObjBuffer::getBound() {
 		minZ = vertices[i].z() < minZ ? vertices[i].z() : minZ;
 	}
 
-	ObjBound bound;
 	bound.maxX = maxX;
 	bound.maxY = maxY;
 	bound.maxZ = maxZ;
 	bound.minX = minX;
 	bound.minY = minY;
 	bound.minZ = minZ;
-
-	return bound;
 }
 
 ChairPartBuffer ChairPartBuffer::fromSeat(ObjBuffer seat) {
 	ChairPartBuffer seat1;
 	seat1.nVertices = seat.nVertices;
 	seat1.mFaces = seat.mFaces;
-	seat1.center = seat.center;
-	seat1.scale = seat.scale;
 	seat1.vertices = seat.vertices;
 	seat1.faces = seat.faces;
 
-	ObjBound bound = seat1.getBound();
+	seat1.resetBound();
+	ObjBound bound = seat1.bound;
 	Vector3f center = bound.getCenter();
 	
 	seat1.backCenter = Vector3f(center.x(), bound.maxY, bound.minZ);
@@ -210,8 +198,6 @@ ChairPartBuffer ChairPartBuffer::fromPart(ObjBuffer part, ChairPartBuffer seat) 
 	ChairPartBuffer part1;
 	part1.nVertices = part.nVertices;
 	part1.mFaces = part.mFaces;
-	part1.center = part.center;
-	part1.scale = part.scale;
 	part1.vertices = part.vertices;
 	part1.faces = part.faces;
 

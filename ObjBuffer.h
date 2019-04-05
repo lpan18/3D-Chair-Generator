@@ -33,6 +33,18 @@ struct ObjBound {
 	}
 };
 
+struct ObjFeatures {
+	Vector3f topRightBack;
+	Vector3f topRightFront;
+	Vector3f topLeftFront;
+	Vector3f topLeftBack;
+
+	Vector3f bottomRightBack;
+	Vector3f bottomRightFront;
+	Vector3f bottomLeftFront;
+	Vector3f bottomLeftBack;
+};
+
 struct ObjGroup {
 	string name;
 	int vStart;
@@ -45,12 +57,12 @@ struct ObjGroup {
 struct ObjBuffer {
 	int nVertices;
 	int mFaces;
-	Vector3f center;
-	float scale;
-
 	Vector3f* vertices;
 	Vector3i* faces;
+	
 	vector<ObjGroup> groups;
+
+	ObjBound bound;
 
     // Read obj file
 	static ObjBuffer readObjFile(string filename);
@@ -60,10 +72,8 @@ struct ObjBuffer {
 	ObjBuffer getGroup(string groupName);
 	// Release vertices and faces
 	void free();
-	// Reset center and scale of this ObjBuffer
-	void setCenterAndScale();
-	// Get ObjBound
-	ObjBound getBound();
+	// Reset ObjBound
+	void resetBound();
 };
 
 struct ChairPartBuffer : ObjBuffer {
