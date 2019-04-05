@@ -148,7 +148,7 @@ ObjBuffer ObjBuffer::getGroup(string groupName) {
 	return buffer;
 }
 
-void ObjBuffer::destroy() {
+void ObjBuffer::free() {
 	delete []vertices;
 	delete []faces;
 }
@@ -239,4 +239,12 @@ ChairBuffer ChairBuffer::readObjFile(string fileName) {
 	chairBuffer.arm = ChairPartBuffer::fromPart(arm, chairBuffer.seat);
 
 	return chairBuffer;
+}
+
+void ChairBuffer::free() {
+	arm.free();
+	back.free();
+	leg.free();
+	seat.free();
+	chair.free();
 }

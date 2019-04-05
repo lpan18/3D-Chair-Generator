@@ -20,6 +20,12 @@ void ChairMixer::readFolder(string path) {
     }
 }
 
+void ChairMixer::free() {
+    for (auto c : chairs) {
+        c.free();
+    }
+}
+
 ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBuffer back, ChairPartBuffer arm) {
     vector<ObjBuffer> buffers;
     buffers.push_back(seat);

@@ -126,12 +126,15 @@ public:
         // however it is better if it is behind the observer
         mShader.setUniform("LightPosition_worldspace", Vector3f(2,-6,-4));
 
+        string path = "ChairModels";
+        mMixer.readFolder(path);
     }
 
     //flush data on call
     ~MyGLCanvas() {
-        mShader.free();
         delete mMesh;
+        mMixer.free();
+        mShader.free();
     }
 
     // method to load obj
@@ -146,10 +149,7 @@ public:
 
     // Temp test method
     void tempTest() {
-        string path = "ChairModels";
-        ChairMixer mixer;
-        mixer.readFolder(path);
-        ObjBuffer mixed = mixer.tempTest();
+        ObjBuffer mixed = mMixer.tempTest();
 
         delete mMesh;
         mMesh = new Mesh(mixed);
@@ -167,7 +167,6 @@ public:
             cout << "No object in scene" << endl;
         }
     }
-
 
     // Method to set shading mode
     void setShadingMode(int fShadingMode) {
@@ -257,16 +256,17 @@ public:
 //Instantiation of the variables that can be acessed outside of this class to interact with the interface
 //Need to be updated if a interface element is interacting with something that is inside the scope of MyGLCanvas
 private:
-    Mesh *mMesh = NULL;
-    MatrixXf positions;
-    MatrixXf normals;
-    MatrixXf smoothNormals;
-    MatrixXf colors;
     nanogui::GLShader mShader;
     Eigen::Matrix4f mRotation;
     Eigen::Vector3f mZoom;
     Eigen::Vector3f mTranslation;
     nanogui::Arcball mArcball;
+    ChairMixer mMixer;
+    Mesh *mMesh = NULL;
+    MatrixXf positions;
+    MatrixXf normals;
+    MatrixXf smoothNormals;
+    MatrixXf colors;
     int mShadingMode = 0;
 };
 
@@ -411,7 +411,6 @@ public:
         /* Draw the user interface */
         Screen::draw(ctx);
     }
-
 
 private:
     MyGLCanvas *mCanvas;

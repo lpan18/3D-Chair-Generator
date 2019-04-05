@@ -58,8 +58,8 @@ struct ObjBuffer {
 	static ObjBuffer combineObjBuffers(vector<ObjBuffer> objBuffers);
 	// Generate a new ObjBuffer for group groupName
 	ObjBuffer getGroup(string groupName);
-	// Delete vertices and faces
-	void destroy();
+	// Release vertices and faces
+	void free();
 	// Reset center and scale of this ObjBuffer
 	void setCenterAndScale();
 	// Get ObjBound
@@ -85,5 +85,7 @@ struct ChairBuffer {
 	ChairPartBuffer arm;
 
 	static ChairBuffer readObjFile(string filename);
+    // Release buffers
+	void free();
 };
 #endif // OBJBUFFER_H
