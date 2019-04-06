@@ -59,7 +59,7 @@ struct ObjBuffer {
 	int mFaces;
 	Vector3f* vertices;
 	Vector3i* faces;
-	
+
 	vector<ObjGroup> groups;
 
 	ObjBound bound;

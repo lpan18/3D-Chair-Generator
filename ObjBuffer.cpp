@@ -143,6 +143,8 @@ ObjBuffer ObjBuffer::getGroup(string groupName) {
 		}
 	}
 
+	buffer.resetBound();
+
 	return buffer;
 }
 
@@ -180,8 +182,8 @@ ChairPartBuffer ChairPartBuffer::fromSeat(ObjBuffer seat) {
 	seat1.mFaces = seat.mFaces;
 	seat1.vertices = seat.vertices;
 	seat1.faces = seat.faces;
+	seat1.bound = seat.bound;
 
-	seat1.resetBound();
 	ObjBound bound = seat1.bound;
 	Vector3f center = bound.getCenter();
 	
@@ -200,6 +202,7 @@ ChairPartBuffer ChairPartBuffer::fromPart(ObjBuffer part, ChairPartBuffer seat) 
 	part1.mFaces = part.mFaces;
 	part1.vertices = part.vertices;
 	part1.faces = part.faces;
+	part1.bound = part.bound;
 
 	part1.backCenter = seat.backCenter;
 	part1.topCenter = seat.topCenter;
