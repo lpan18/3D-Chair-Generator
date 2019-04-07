@@ -46,11 +46,6 @@ ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBu
     return mixed;
 }
 
-Vector3f ChairMixer::transformBySeatFeatures(Matrix3f scale, Vector3f v, Vector3f oldBase, Vector3f newBase) {
-    Vector3f offset = v - oldBase;
-    return scale * offset + newBase;
-}
-
 void ChairMixer::transformLeg(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& leg, int legVI) {
     float legScaleX = seat.origSeatFeatures.width / leg.origSeatFeatures.width;
     float legScaleY = seat.origSeatFeatures.depth / leg.origSeatFeatures.depth;
@@ -61,7 +56,7 @@ void ChairMixer::transformLeg(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPart
             0, 0, legScaleZ;
 
     for (int i = legVI; i < legVI + leg.nVertices; i++) {
-        mixed.vertices[i] = transformBySeatFeatures(scale, mixed.vertices[i], leg.origSeatFeatures.bottomCenter, seat.origSeatFeatures.bottomCenter);
+        mixed.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, mixed.vertices[i], leg.origSeatFeatures.bottomCenter, seat.origSeatFeatures.bottomCenter);
     }
 }
 
@@ -73,7 +68,7 @@ void ChairMixer::transformBack(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPar
             0, 0, backScale;
     
     for (int i = backVI; i < backVI + back.nVertices; i++) {
-        mixed.vertices[i] = transformBySeatFeatures(scale, mixed.vertices[i], back.origSeatFeatures.backTopCenter, seat.origSeatFeatures.backTopCenter);
+        mixed.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, mixed.vertices[i], back.origSeatFeatures.backTopCenter, seat.origSeatFeatures.backTopCenter);
     }
 }
 
@@ -87,6 +82,6 @@ void ChairMixer::transformArm(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPart
             0, 0, armScaleZ;
     
     for (int i = armVI; i < armVI + arm.nVertices; i++) {
-        mixed.vertices[i] = transformBySeatFeatures(scale, mixed.vertices[i], arm.origSeatFeatures.topCenter, seat.origSeatFeatures.topCenter);
+        mixed.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, mixed.vertices[i], arm.origSeatFeatures.topCenter, seat.origSeatFeatures.topCenter);
     }
 }

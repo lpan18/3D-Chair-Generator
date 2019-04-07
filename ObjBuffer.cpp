@@ -238,6 +238,11 @@ ChairPartOrigSeatFeatures ChairPartOrigSeatFeatures::fromSeat(ObjBuffer& seat) {
 	return features;
 }
 
+Vector3f ChairPartOrigSeatFeatures::transform(Matrix3f scale, Vector3f v, Vector3f oldBase, Vector3f newBase) {
+    Vector3f offset = v - oldBase;
+    return scale * offset + newBase;
+}
+
 ChairPartBuffer ChairPartBuffer::fromSeat(ObjBuffer& seat) {
 	ChairPartBuffer seat1;
 	seat1.nVertices = seat.nVertices;

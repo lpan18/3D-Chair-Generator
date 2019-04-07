@@ -88,6 +88,7 @@ struct ChairPartOrigSeatFeatures {
 	float depth;
 
 	static ChairPartOrigSeatFeatures fromSeat(ObjBuffer& seat);
+	static Vector3f transform(Matrix3f scale, Vector3f v, Vector3f oldBase, Vector3f newBase);
 };
 
 struct ChairPartBuffer : ObjBuffer {
