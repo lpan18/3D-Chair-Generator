@@ -38,35 +38,44 @@ ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBu
     int legVI = seat.nVertices;
     int backVI = legVI + leg.nVertices;
     int armVI = backVI + back.nVertices;
-    int endVI = armVI + arm.nVertices;
 
+    transformLeg(mixed, seat, leg, legVI);
+    transformBack(mixed, seat, back, backVI);
+    transformArm(mixed, seat, arm, armVI);
+
+    return mixed;
+}
+
+void ChairMixer::transformLeg(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& leg, int legVI) {
     float legScaleX = seat.origSeatFeatures.width / leg.origSeatFeatures.width;
     float legScaleY = seat.origSeatFeatures.depth / leg.origSeatFeatures.depth;
     float legScaleZ = (legScaleX + legScaleY) / 2;
-    for (int i = legVI; i < backVI; i++) {
+    for (int i = legVI; i < legVI + leg.nVertices; i++) {
         Vector3f offset = mixed.vertices[i] - leg.origSeatFeatures.bottomCenter;
         mixed.vertices[i] = Vector3f(offset.x() * legScaleX,
                                      offset.y() * legScaleY,
                                      offset.z() * legScaleZ)
                             + seat.origSeatFeatures.bottomCenter;
     }
+}
 
+void ChairMixer::transformBack(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& back, int backVI) {
     float backScale = seat.origSeatFeatures.width / back.origSeatFeatures.width;
-    for (int i = backVI; i < armVI; i++) {
+    for (int i = backVI; i < backVI + back.nVertices; i++) {
         Vector3f offset = (mixed.vertices[i] - back.origSeatFeatures.backTopCenter) * backScale;
         mixed.vertices[i] = offset + seat.origSeatFeatures.backTopCenter;
     }
+}
 
+void ChairMixer::transformArm(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& arm, int armVI) {
     float armScaleX = seat.origSeatFeatures.width / arm.origSeatFeatures.width;
     float armScaleY = seat.origSeatFeatures.depth / arm.origSeatFeatures.depth;
     float armScaleZ = (armScaleX + armScaleY) / 2;
-    for (int i = armVI; i < endVI; i++) {
+    for (int i = armVI; i < armVI + arm.nVertices; i++) {
         Vector3f offset = mixed.vertices[i] - arm.origSeatFeatures.topCenter;
         mixed.vertices[i] = Vector3f(offset.x() * armScaleX,
                                      offset.y() * armScaleY,
                                      offset.z() * armScaleZ)
                             + seat.origSeatFeatures.topCenter;
     }
-
-    return mixed;
 }

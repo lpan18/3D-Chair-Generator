@@ -24,5 +24,10 @@ public:
 
         return mix(chair1.seat, chair2.leg, chair3.back, chair4.arm);
     }
+
+private:
+    void transformLeg(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& leg, int legVI);
+    void transformBack(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& back, int backVI);
+    void transformArm(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& arm, int armVI);
 };
 #endif // CHAIRMIXER_H
