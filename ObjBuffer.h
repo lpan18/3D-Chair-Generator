@@ -56,7 +56,7 @@ struct ObjBuffer {
     // Read obj file
 	static ObjBuffer readObjFile(string filename);
 	// Combine multiple ObjBuffers
-	static ObjBuffer combineObjBuffers(vector<ObjBuffer> objBuffers);
+	static ObjBuffer combineObjBuffers(vector<ObjBuffer*> objBuffers);
 	// Generate a new ObjBuffer for group groupName
 	ObjBuffer getGroup(string groupName);
 	// Release vertices and faces

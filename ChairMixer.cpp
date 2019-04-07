@@ -27,14 +27,14 @@ void ChairMixer::free() {
 }
 
 ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBuffer back, ChairPartBuffer arm) {
-    vector<ObjBuffer> buffers;
-    buffers.push_back(seat);
-    buffers.push_back(leg);
-    buffers.push_back(back);
-    buffers.push_back(arm);
+    vector<ObjBuffer*> buffers;
+    buffers.push_back(&seat);
+    buffers.push_back(&leg);
+    buffers.push_back(&back);
+    buffers.push_back(&arm);
 
     ObjBuffer mixed = ObjBuffer::combineObjBuffers(buffers);
-    
+
     int legVI = seat.nVertices;
     int backVI = legVI + leg.nVertices;
     int armVI = backVI + back.nVertices;
@@ -42,7 +42,7 @@ ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBu
     transformLeg(mixed, seat, leg, legVI);
     transformBack(mixed, seat, back, backVI);
     transformArm(mixed, seat, arm, armVI);
-
+    
     return mixed;
 }
 

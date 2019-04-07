@@ -70,14 +70,14 @@ ObjBuffer ObjBuffer::readObjFile(string filename) {
 	return buffer;
 }
 
-ObjBuffer ObjBuffer::combineObjBuffers(vector<ObjBuffer> objBuffers) {
+ObjBuffer ObjBuffer::combineObjBuffers(vector<ObjBuffer*> objBuffers) {
 	ObjBuffer buffer;
 	// First, get vCount and fCount and initialize buffer
 	int vCount = 0;
 	int fCount = 0;
 	for (auto b : objBuffers) {
-		vCount += b.nVertices;
-		fCount += b.mFaces;
+		vCount += b->nVertices;
+		fCount += b->mFaces;
 	}
 
 	buffer.nVertices = vCount;
@@ -91,15 +91,26 @@ ObjBuffer ObjBuffer::combineObjBuffers(vector<ObjBuffer> objBuffers) {
 	for (auto b : objBuffers) {
 		int viOffset = vi;
 		
-		for (int i = 0; i < b.nVertices; i++) {
-			buffer.vertices[vi] = b.vertices[i];
+		for (int i = 0; i < b->nVertices; i++) {
+			buffer.vertices[vi] = b->vertices[i];
 			vi++;
 		}
 		
-		for (int i = 0; i < b.mFaces; i++) {
-			buffer.faces[fi] = b.faces[i] + Vector3i(viOffset, viOffset, viOffset);
+		for (int i = 0; i < b->mFaces; i++) {
+			buffer.faces[fi] = b->faces[i] + Vector3i(viOffset, viOffset, viOffset);
 			fi++;
 		}
+	}
+
+	// Reset vertices and faces for objBuffers
+	Vector3f* vCurrent = buffer.vertices;
+	Vector3i* fCurrent = buffer.faces;
+	for (auto b : objBuffers) {
+		b->vertices = vCurrent;
+		b->faces = fCurrent;
+
+		vCurrent += b->nVertices;
+		fCurrent += b->mFaces;
 	}
 
 	buffer.resetBound();
