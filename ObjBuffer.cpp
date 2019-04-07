@@ -176,7 +176,12 @@ void ObjBuffer::resetBound() {
 	bound.minZ = minZ;
 }
 
-ChairPartOrigSeatFeatures ChairPartOrigSeatFeatures::fromSeat(ObjBuffer seat) {
+ChairPartFeatures ChairPartFeatures::fromPart(ObjBuffer& part) {
+	part.resetBound();
+
+}
+
+ChairPartOrigSeatFeatures ChairPartOrigSeatFeatures::fromSeat(ObjBuffer& seat) {
 	ChairPartOrigSeatFeatures features;
 	ObjBound bound = seat.bound;
 	Vector3f center = bound.getCenter();
@@ -190,7 +195,7 @@ ChairPartOrigSeatFeatures ChairPartOrigSeatFeatures::fromSeat(ObjBuffer seat) {
 	return features;
 }
 
-ChairPartBuffer ChairPartBuffer::fromSeat(ObjBuffer seat) {
+ChairPartBuffer ChairPartBuffer::fromSeat(ObjBuffer& seat) {
 	ChairPartBuffer seat1;
 	seat1.nVertices = seat.nVertices;
 	seat1.mFaces = seat.mFaces;
@@ -202,7 +207,7 @@ ChairPartBuffer ChairPartBuffer::fromSeat(ObjBuffer seat) {
 	return seat1;
 }
 
-ChairPartBuffer ChairPartBuffer::fromPart(ObjBuffer part, ChairPartBuffer seat) {
+ChairPartBuffer ChairPartBuffer::fromPart(ObjBuffer& part, ChairPartBuffer& seat) {
 	ChairPartBuffer part1;
 	part1.nVertices = part.nVertices;
 	part1.mFaces = part.mFaces;

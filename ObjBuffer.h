@@ -75,7 +75,7 @@ struct ChairPartFeatures {
 	Vector3f bottomLeftFront;
 	Vector3f bottomLeftBack;
 
-	static ChairPartFeatures fromPart(ObjBuffer part);
+	static ChairPartFeatures fromPart(ObjBuffer& part);
 };
 
 struct ChairPartOrigSeatFeatures {
@@ -85,15 +85,15 @@ struct ChairPartOrigSeatFeatures {
 	float width;
 	float depth;
 
-	static ChairPartOrigSeatFeatures fromSeat(ObjBuffer seat);
+	static ChairPartOrigSeatFeatures fromSeat(ObjBuffer& seat);
 };
 
 struct ChairPartBuffer : ObjBuffer {
 	ChairPartFeatures partFeatures;
 	ChairPartOrigSeatFeatures origSeatFeatures;
 
-	static ChairPartBuffer fromSeat(ObjBuffer seat);
-	static ChairPartBuffer fromPart(ObjBuffer part, ChairPartBuffer seat);
+	static ChairPartBuffer fromSeat(ObjBuffer& seat);
+	static ChairPartBuffer fromPart(ObjBuffer& part, ChairPartBuffer& seat);
 };
 
 struct ChairBuffer {
