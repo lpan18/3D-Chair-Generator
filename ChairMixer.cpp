@@ -35,18 +35,14 @@ ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBu
 
     ObjBuffer mixed = ObjBuffer::combineObjBuffers(buffers);
 
-    int legVI = seat.nVertices;
-    int backVI = legVI + leg.nVertices;
-    int armVI = backVI + back.nVertices;
+    transformLeg(mixed, seat, leg);
+    transformBack(mixed, seat, back);
+    transformArm(mixed, seat, arm);
 
-    transformLeg(mixed, seat, leg, legVI);
-    transformBack(mixed, seat, back, backVI);
-    transformArm(mixed, seat, arm, armVI);
-    
     return mixed;
 }
 
-void ChairMixer::transformLeg(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& leg, int legVI) {
+void ChairMixer::transformLeg(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& leg) {
     float legScaleX = seat.origSeatFeatures.width / leg.origSeatFeatures.width;
     float legScaleY = seat.origSeatFeatures.depth / leg.origSeatFeatures.depth;
     float legScaleZ = (legScaleX + legScaleY) / 2;
@@ -55,24 +51,28 @@ void ChairMixer::transformLeg(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPart
             0, legScaleY, 0,
             0, 0, legScaleZ;
 
-    for (int i = legVI; i < legVI + leg.nVertices; i++) {
-        mixed.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, mixed.vertices[i], leg.origSeatFeatures.bottomCenter, seat.origSeatFeatures.bottomCenter);
+    for (int i = 0; i < leg.nVertices; i++) {
+        leg.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, leg.vertices[i], leg.origSeatFeatures.bottomCenter, seat.origSeatFeatures.bottomCenter);
     }
+
+    leg.partFeatures = ChairPartFeatures::fromPart(leg);
 }
 
-void ChairMixer::transformBack(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& back, int backVI) {
+void ChairMixer::transformBack(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& back) {
     float backScale = seat.origSeatFeatures.width / back.origSeatFeatures.width;
     Matrix3f scale;
     scale << backScale, 0, 0,
             0, backScale, 0,
             0, 0, backScale;
     
-    for (int i = backVI; i < backVI + back.nVertices; i++) {
-        mixed.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, mixed.vertices[i], back.origSeatFeatures.backTopCenter, seat.origSeatFeatures.backTopCenter);
+    for (int i = 0; i < back.nVertices; i++) {
+        back.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, back.vertices[i], back.origSeatFeatures.backTopCenter, seat.origSeatFeatures.backTopCenter);
     }
+
+    back.partFeatures = ChairPartFeatures::fromPart(back);
 }
 
-void ChairMixer::transformArm(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& arm, int armVI) {
+void ChairMixer::transformArm(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& arm) {
     float armScaleX = seat.origSeatFeatures.width / arm.origSeatFeatures.width;
     float armScaleY = seat.origSeatFeatures.depth / arm.origSeatFeatures.depth;
     float armScaleZ = (armScaleX + armScaleY) / 2;
@@ -81,7 +81,9 @@ void ChairMixer::transformArm(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPart
             0, armScaleY, 0,
             0, 0, armScaleZ;
     
-    for (int i = armVI; i < armVI + arm.nVertices; i++) {
-        mixed.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, mixed.vertices[i], arm.origSeatFeatures.topCenter, seat.origSeatFeatures.topCenter);
+    for (int i = 0; i < arm.nVertices; i++) {
+        arm.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, arm.vertices[i], arm.origSeatFeatures.topCenter, seat.origSeatFeatures.topCenter);
     }
+
+    arm.partFeatures = ChairPartFeatures::fromPart(arm);
 }
