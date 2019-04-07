@@ -176,9 +176,52 @@ void ObjBuffer::resetBound() {
 	bound.minZ = minZ;
 }
 
+Vector3f ChairPartFeatures::getFeature(ObjBuffer& part, float x, float y, float z) {
+	Vector3f feature;
+	float minError = MAXVALUE;
+
+	Vector3f v;
+	float error;
+	for (int i = 0; i < part.nVertices; i++) {
+		v = part.vertices[i];
+		error = abs(v.x() - x) + abs(v.y() - y) + 2 * abs(v.z() - z);
+		if (error < minError) {
+			feature = v;
+			minError = error;
+		}
+	}
+
+	return feature;
+}
+
 ChairPartFeatures ChairPartFeatures::fromPart(ObjBuffer& part) {
 	part.resetBound();
+	ObjBound b = part.bound;
 
+	ChairPartFeatures features;
+
+	if (part.nVertices > 0) {
+		features.topRightBack = getFeature(part, b.maxX, b.maxY, b.minZ);
+		features.topRightFront = getFeature(part, b.maxX, b.minY, b.minZ);
+		features.topLeftFront = getFeature(part, b.minX, b.minY, b.minZ);
+		features.topLeftBack = getFeature(part, b.minX, b.maxY, b.minZ);
+
+		features.bottomRightBack = getFeature(part, b.maxX, b.maxY, b.maxZ);
+		features.bottomRightFront = getFeature(part, b.maxX, b.minY, b.maxZ);
+		features.bottomLeftFront = getFeature(part, b.minX, b.minY, b.maxZ);
+		features.bottomLeftBack = getFeature(part, b.minX, b.maxY, b.maxZ);
+	} else {
+		features.topRightBack =
+		features.topRightFront =
+		features.topLeftFront =
+		features.topLeftBack =
+		features.bottomRightBack =
+		features.bottomRightFront =
+		features.bottomLeftFront =
+		features.bottomLeftBack = Vector3f::Zero();
+	}
+
+	return features;
 }
 
 ChairPartOrigSeatFeatures ChairPartOrigSeatFeatures::fromSeat(ObjBuffer& seat) {
@@ -202,6 +245,7 @@ ChairPartBuffer ChairPartBuffer::fromSeat(ObjBuffer& seat) {
 	seat1.vertices = seat.vertices;
 	seat1.faces = seat.faces;
 	seat1.bound = seat.bound;
+	seat1.partFeatures = ChairPartFeatures::fromPart(seat1);
 	seat1.origSeatFeatures = ChairPartOrigSeatFeatures::fromSeat(seat1);
 
 	return seat1;
@@ -214,6 +258,7 @@ ChairPartBuffer ChairPartBuffer::fromPart(ObjBuffer& part, ChairPartBuffer& seat
 	part1.vertices = part.vertices;
 	part1.faces = part.faces;
 	part1.bound = part.bound;
+	part1.partFeatures = ChairPartFeatures::fromPart(part1);
 	part1.origSeatFeatures = seat.origSeatFeatures;
 
 	return part1;

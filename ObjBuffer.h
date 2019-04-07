@@ -75,6 +75,7 @@ struct ChairPartFeatures {
 	Vector3f bottomLeftFront;
 	Vector3f bottomLeftBack;
 
+	static Vector3f getFeature(ObjBuffer& part, float x, float y, float z);
 	static ChairPartFeatures fromPart(ObjBuffer& part);
 };
 
