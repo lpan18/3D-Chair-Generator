@@ -33,18 +33,6 @@ struct ObjBound {
 	}
 };
 
-struct ObjFeatures {
-	Vector3f topRightBack;
-	Vector3f topRightFront;
-	Vector3f topLeftFront;
-	Vector3f topLeftBack;
-
-	Vector3f bottomRightBack;
-	Vector3f bottomRightFront;
-	Vector3f bottomLeftFront;
-	Vector3f bottomLeftBack;
-};
-
 struct ObjGroup {
 	string name;
 	int vStart;
@@ -76,12 +64,33 @@ struct ObjBuffer {
 	void resetBound();
 };
 
-struct ChairPartBuffer : ObjBuffer {
-	Vector3f backCenter;
+struct ChairPartFeatures {
+	Vector3f topRightBack;
+	Vector3f topRightFront;
+	Vector3f topLeftFront;
+	Vector3f topLeftBack;
+
+	Vector3f bottomRightBack;
+	Vector3f bottomRightFront;
+	Vector3f bottomLeftFront;
+	Vector3f bottomLeftBack;
+
+	static ChairPartFeatures fromPart(ObjBuffer part);
+};
+
+struct ChairPartOrigSeatFeatures {
+	Vector3f backTopCenter;
 	Vector3f topCenter;
 	Vector3f bottomCenter;
 	float width;
 	float depth;
+
+	static ChairPartOrigSeatFeatures fromSeat(ObjBuffer seat);
+};
+
+struct ChairPartBuffer : ObjBuffer {
+	ChairPartFeatures partFeatures;
+	ChairPartOrigSeatFeatures origSeatFeatures;
 
 	static ChairPartBuffer fromSeat(ObjBuffer seat);
 	static ChairPartBuffer fromPart(ObjBuffer part, ChairPartBuffer seat);

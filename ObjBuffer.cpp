@@ -176,6 +176,20 @@ void ObjBuffer::resetBound() {
 	bound.minZ = minZ;
 }
 
+ChairPartOrigSeatFeatures ChairPartOrigSeatFeatures::fromSeat(ObjBuffer seat) {
+	ChairPartOrigSeatFeatures features;
+	ObjBound bound = seat.bound;
+	Vector3f center = bound.getCenter();
+	
+	features.backTopCenter = Vector3f(center.x(), bound.maxY, bound.minZ);
+	features.topCenter = Vector3f(center.x(), center.y(), bound.minZ);
+	features.bottomCenter = Vector3f(center.x(), center.y(), bound.maxZ);
+	features.width = bound.maxX - bound.minX;
+	features.depth = bound.maxY - bound.minY;
+
+	return features;
+}
+
 ChairPartBuffer ChairPartBuffer::fromSeat(ObjBuffer seat) {
 	ChairPartBuffer seat1;
 	seat1.nVertices = seat.nVertices;
@@ -183,15 +197,7 @@ ChairPartBuffer ChairPartBuffer::fromSeat(ObjBuffer seat) {
 	seat1.vertices = seat.vertices;
 	seat1.faces = seat.faces;
 	seat1.bound = seat.bound;
-
-	ObjBound bound = seat1.bound;
-	Vector3f center = bound.getCenter();
-	
-	seat1.backCenter = Vector3f(center.x(), bound.maxY, bound.minZ);
-	seat1.topCenter = Vector3f(center.x(), center.y(), bound.minZ);
-	seat1.bottomCenter = Vector3f(center.x(), center.y(), bound.maxZ);
-	seat1.width = bound.maxX - bound.minX;
-	seat1.depth = bound.maxY - bound.minY;
+	seat1.origSeatFeatures = ChairPartOrigSeatFeatures::fromSeat(seat1);
 
 	return seat1;
 }
@@ -203,12 +209,7 @@ ChairPartBuffer ChairPartBuffer::fromPart(ObjBuffer part, ChairPartBuffer seat) 
 	part1.vertices = part.vertices;
 	part1.faces = part.faces;
 	part1.bound = part.bound;
-
-	part1.backCenter = seat.backCenter;
-	part1.topCenter = seat.topCenter;
-	part1.bottomCenter = seat.bottomCenter;
-	part1.width = seat.width;
-	part1.depth = seat.depth;
+	part1.origSeatFeatures = seat.origSeatFeatures;
 
 	return part1;
 }
