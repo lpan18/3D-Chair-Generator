@@ -26,6 +26,7 @@ public:
     }
 
 private:
+    Vector3f transformBySeatFeatures(Matrix3f scale, Vector3f v, Vector3f oldBase, Vector3f newBase);
     void transformLeg(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& leg, int legVI);
     void transformBack(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& back, int backVI);
     void transformArm(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& arm, int armVI);

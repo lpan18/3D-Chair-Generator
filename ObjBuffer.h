@@ -7,6 +7,7 @@ using namespace std;
 using Eigen::Vector3f;
 using Eigen::Vector3i;
 using Eigen::Vector4f;
+using Eigen::Matrix3f;
 using Eigen::Matrix4f;
 using Eigen::MatrixXf;
 

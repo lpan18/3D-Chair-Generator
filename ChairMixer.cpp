@@ -46,24 +46,34 @@ ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBu
     return mixed;
 }
 
+Vector3f ChairMixer::transformBySeatFeatures(Matrix3f scale, Vector3f v, Vector3f oldBase, Vector3f newBase) {
+    Vector3f offset = v - oldBase;
+    return scale * offset + newBase;
+}
+
 void ChairMixer::transformLeg(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& leg, int legVI) {
     float legScaleX = seat.origSeatFeatures.width / leg.origSeatFeatures.width;
     float legScaleY = seat.origSeatFeatures.depth / leg.origSeatFeatures.depth;
     float legScaleZ = (legScaleX + legScaleY) / 2;
+    Matrix3f scale;
+    scale << legScaleX, 0, 0,
+            0, legScaleY, 0,
+            0, 0, legScaleZ;
+
     for (int i = legVI; i < legVI + leg.nVertices; i++) {
-        Vector3f offset = mixed.vertices[i] - leg.origSeatFeatures.bottomCenter;
-        mixed.vertices[i] = Vector3f(offset.x() * legScaleX,
-                                     offset.y() * legScaleY,
-                                     offset.z() * legScaleZ)
-                            + seat.origSeatFeatures.bottomCenter;
+        mixed.vertices[i] = transformBySeatFeatures(scale, mixed.vertices[i], leg.origSeatFeatures.bottomCenter, seat.origSeatFeatures.bottomCenter);
     }
 }
 
 void ChairMixer::transformBack(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& back, int backVI) {
     float backScale = seat.origSeatFeatures.width / back.origSeatFeatures.width;
+    Matrix3f scale;
+    scale << backScale, 0, 0,
+            0, backScale, 0,
+            0, 0, backScale;
+    
     for (int i = backVI; i < backVI + back.nVertices; i++) {
-        Vector3f offset = (mixed.vertices[i] - back.origSeatFeatures.backTopCenter) * backScale;
-        mixed.vertices[i] = offset + seat.origSeatFeatures.backTopCenter;
+        mixed.vertices[i] = transformBySeatFeatures(scale, mixed.vertices[i], back.origSeatFeatures.backTopCenter, seat.origSeatFeatures.backTopCenter);
     }
 }
 
@@ -71,11 +81,12 @@ void ChairMixer::transformArm(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPart
     float armScaleX = seat.origSeatFeatures.width / arm.origSeatFeatures.width;
     float armScaleY = seat.origSeatFeatures.depth / arm.origSeatFeatures.depth;
     float armScaleZ = (armScaleX + armScaleY) / 2;
+    Matrix3f scale;
+    scale << armScaleX, 0, 0,
+            0, armScaleY, 0,
+            0, 0, armScaleZ;
+    
     for (int i = armVI; i < armVI + arm.nVertices; i++) {
-        Vector3f offset = mixed.vertices[i] - arm.origSeatFeatures.topCenter;
-        mixed.vertices[i] = Vector3f(offset.x() * armScaleX,
-                                     offset.y() * armScaleY,
-                                     offset.z() * armScaleZ)
-                            + seat.origSeatFeatures.topCenter;
+        mixed.vertices[i] = transformBySeatFeatures(scale, mixed.vertices[i], arm.origSeatFeatures.topCenter, seat.origSeatFeatures.topCenter);
     }
 }
