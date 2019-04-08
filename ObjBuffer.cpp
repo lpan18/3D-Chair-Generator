@@ -187,6 +187,22 @@ void ObjBuffer::resetBound() {
 	bound.minZ = minZ;
 }
 
+// TO DO
+// Temporary implementation.
+// To be updated to http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.104.4264&rep=rep1&type=pdf
+Vector3f ObjBuffer::getClosestPointTo(Vector3f p1) {
+	float minDistQuad = MAXVALUE;
+	Vector3f p2;
+	for (int i = 0; i < nVertices; i++) {
+	    float distQuad = vertices[i].x() * p1.x() + vertices[i].y() * p1.y() + vertices[i].z() * p1.z();
+		if (distQuad < minDistQuad) {
+			minDistQuad = distQuad;
+			p2 = vertices[i];
+		}
+	}
+	return p2;
+}
+
 ChairPartOrigSeatFeatures ChairPartOrigSeatFeatures::fromSeat(ObjBuffer& seat) {
 	ChairPartOrigSeatFeatures features;
 	ObjBound bound = seat.bound;
