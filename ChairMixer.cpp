@@ -35,14 +35,14 @@ ObjBuffer ChairMixer::mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBu
 
     ObjBuffer mixed = ObjBuffer::combineObjBuffers(buffers);
 
-    transformLeg(mixed, seat, leg);
-    transformBack(mixed, seat, back);
-    transformArm(mixed, seat, arm);
+    transformLeg(seat, leg);
+    transformBack(seat, back);
+    transformArm(seat, arm);
 
     return mixed;
 }
 
-void ChairMixer::transformLeg(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& leg) {
+void ChairMixer::transformLeg(ChairPartBuffer& seat, ChairPartBuffer& leg) {
     float legScaleX = seat.origSeatFeatures.width / leg.origSeatFeatures.width;
     float legScaleY = seat.origSeatFeatures.depth / leg.origSeatFeatures.depth;
     float legScaleZ = (legScaleX + legScaleY) / 2;
@@ -55,10 +55,10 @@ void ChairMixer::transformLeg(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPart
         leg.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, leg.vertices[i], leg.origSeatFeatures.bottomCenter, seat.origSeatFeatures.bottomCenter);
     }
 
-    leg.partFeatures = ChairPartFeatures::fromPart(leg);
+    leg.resetPartFeatures();
 }
 
-void ChairMixer::transformBack(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& back) {
+void ChairMixer::transformBack(ChairPartBuffer& seat, ChairPartBuffer& back) {
     float backScale = seat.origSeatFeatures.width / back.origSeatFeatures.width;
     Matrix3f scale;
     scale << backScale, 0, 0,
@@ -69,10 +69,10 @@ void ChairMixer::transformBack(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPar
         back.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, back.vertices[i], back.origSeatFeatures.backTopCenter, seat.origSeatFeatures.backTopCenter);
     }
 
-    back.partFeatures = ChairPartFeatures::fromPart(back);
+    back.resetPartFeatures();
 }
 
-void ChairMixer::transformArm(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPartBuffer& arm) {
+void ChairMixer::transformArm(ChairPartBuffer& seat, ChairPartBuffer& arm) {
     float armScaleX = seat.origSeatFeatures.width / arm.origSeatFeatures.width;
     float armScaleY = seat.origSeatFeatures.depth / arm.origSeatFeatures.depth;
     float armScaleZ = (armScaleX + armScaleY) / 2;
@@ -85,5 +85,5 @@ void ChairMixer::transformArm(ObjBuffer& mixed, ChairPartBuffer& seat, ChairPart
         arm.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, arm.vertices[i], arm.origSeatFeatures.topCenter, seat.origSeatFeatures.topCenter);
     }
 
-    arm.partFeatures = ChairPartFeatures::fromPart(arm);
+    arm.resetPartFeatures();
 }

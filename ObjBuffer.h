@@ -65,21 +65,6 @@ struct ObjBuffer {
 	void resetBound();
 };
 
-struct ChairPartFeatures {
-	Vector3f topRightBack;
-	Vector3f topRightFront;
-	Vector3f topLeftFront;
-	Vector3f topLeftBack;
-
-	Vector3f bottomRightBack;
-	Vector3f bottomRightFront;
-	Vector3f bottomLeftFront;
-	Vector3f bottomLeftBack;
-
-	static Vector3f getFeature(ObjBuffer& part, float x, float y, float z);
-	static ChairPartFeatures fromPart(ObjBuffer& part);
-};
-
 struct ChairPartOrigSeatFeatures {
 	Vector3f backTopCenter;
 	Vector3f topCenter;
@@ -91,12 +76,27 @@ struct ChairPartOrigSeatFeatures {
 	static Vector3f transform(Matrix3f scale, Vector3f v, Vector3f oldBase, Vector3f newBase);
 };
 
+struct ChairPartFeatures {
+	Vector3f topRightBack;
+	Vector3f topRightFront;
+	Vector3f topLeftFront;
+	Vector3f topLeftBack;
+
+	Vector3f bottomRightBack;
+	Vector3f bottomRightFront;
+	Vector3f bottomLeftFront;
+	Vector3f bottomLeftBack;
+};
+
 struct ChairPartBuffer : ObjBuffer {
-	ChairPartFeatures partFeatures;
 	ChairPartOrigSeatFeatures origSeatFeatures;
+	ChairPartFeatures partFeatures;
 
 	static ChairPartBuffer fromSeat(ObjBuffer& seat);
 	static ChairPartBuffer fromPart(ObjBuffer& part, ChairPartBuffer& seat);
+	void resetPartFeatures();
+private:
+	Vector3f getFeature(float x, float y, float z);
 };
 
 struct ChairBuffer {
