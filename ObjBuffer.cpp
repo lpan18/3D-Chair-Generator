@@ -204,13 +204,14 @@ Vector3f ObjBuffer::getClosestPointTo(Vector3f p1) {
 }
 
 ChairPartOrigSeatFeatures ChairPartOrigSeatFeatures::fromSeat(ObjBuffer& seat) {
+	seat.resetBound();
 	ChairPartOrigSeatFeatures features;
 	ObjBound bound = seat.bound;
 	Vector3f center = bound.getCenter();
 	
-	features.backTopCenter = Vector3f(center.x(), bound.maxY, bound.minZ);
-	features.topCenter = Vector3f(center.x(), center.y(), bound.minZ);
-	features.bottomCenter = Vector3f(center.x(), center.y(), bound.maxZ);
+	features.backTopCenter = Vector3f(center.x(), bound.maxY, bound.maxZ);
+	features.topCenter = Vector3f(center.x(), center.y(), bound.maxZ);
+	features.bottomCenter = Vector3f(center.x(), center.y(), bound.minZ);
 	features.width = bound.maxX - bound.minX;
 	features.depth = bound.maxY - bound.minY;
 
@@ -256,7 +257,7 @@ Vector3f ChairPartBuffer::getFeature(float x, float y, float z) {
 	float error;
 	for (int i = 0; i < nVertices; i++) {
 		v = vertices[i];
-		error = abs(v.x() - x) + abs(v.y() - y) + 2 * abs(v.z() - z);
+		error = abs(v.x() - x) + abs(v.y() - y) + 3 * abs(v.z() - z);
 		if (error < minError) {
 			feature = v;
 			minError = error;
@@ -270,15 +271,15 @@ void ChairPartBuffer::resetPartFeatures() {
 	resetBound();
 
 	if (nVertices > 0) {
-		partFeatures.topRightBack = getFeature(bound.maxX, bound.maxY, bound.minZ);
-		partFeatures.topRightFront = getFeature(bound.maxX, bound.minY, bound.minZ);
-		partFeatures.topLeftFront = getFeature(bound.minX, bound.minY, bound.minZ);
-		partFeatures.topLeftBack = getFeature(bound.minX, bound.maxY, bound.minZ);
+		partFeatures.topRightBack = getFeature(bound.minX, bound.maxY, bound.maxZ);
+		partFeatures.topRightFront = getFeature(bound.minX, bound.minY, bound.maxZ);
+		partFeatures.topLeftFront = getFeature(bound.maxX, bound.minY, bound.maxZ);
+		partFeatures.topLeftBack = getFeature(bound.maxX, bound.maxY, bound.maxZ);
 
-		partFeatures.bottomRightBack = getFeature(bound.maxX, bound.maxY, bound.maxZ);
-		partFeatures.bottomRightFront = getFeature(bound.maxX, bound.minY, bound.maxZ);
-		partFeatures.bottomLeftFront = getFeature(bound.minX, bound.minY, bound.maxZ);
-		partFeatures.bottomLeftBack = getFeature(bound.minX, bound.maxY, bound.maxZ);
+		partFeatures.bottomRightBack = getFeature(bound.minX, bound.maxY, bound.minZ);
+		partFeatures.bottomRightFront = getFeature(bound.minX, bound.minY, bound.minZ);
+		partFeatures.bottomLeftFront = getFeature(bound.maxX, bound.minY, bound.minZ);
+		partFeatures.bottomLeftBack = getFeature(bound.maxX, bound.maxY, bound.minZ);
 	} else {
 		partFeatures.topRightBack =
 		partFeatures.topRightFront =

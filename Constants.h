@@ -2,4 +2,5 @@
 #define CONSTANTS_H
 const float MAXVALUE = 99999999;
 const float PI = 3.14159265359;
+const float LEG_DIST_THLD = 0.2;
 #endif // CONSTANTS_H

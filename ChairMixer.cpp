@@ -56,6 +56,16 @@ void ChairMixer::transformLeg(ChairPartBuffer& seat, ChairPartBuffer& leg) {
     }
 
     leg.resetPartFeatures();
+
+    float legDistFrontBack = abs(leg.partFeatures.topRightBack.y() - leg.partFeatures.topRightFront.y());
+
+    if (legDistFrontBack / seat.origSeatFeatures.depth < LEG_DIST_THLD) {
+        // In this case, the legs are considered as one whole entity.
+        Vector3f targetP = seat.getClosestPointTo(leg.partFeatures.topRightBack);
+        
+    } else {
+
+    }
 }
 
 void ChairMixer::transformBack(ChairPartBuffer& seat, ChairPartBuffer& back) {
