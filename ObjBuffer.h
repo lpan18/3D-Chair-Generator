@@ -101,7 +101,8 @@ struct ChairPartBuffer : ObjBuffer {
 	void resetPartFeatures();
 	Matrix3f getScaleMatrix(Vector3f pb, Vector3f p0, Vector3f p1);
 	void singleScale(Vector3f pb, Vector3f p0, Vector3f p1);
-	void doubleScale();
+	// Inputs: p0.y() > q0.y()
+	void doubleScale(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1);
 private:
 	Vector3f getFeature(float x, float y, float z);
 };
