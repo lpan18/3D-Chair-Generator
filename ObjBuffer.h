@@ -97,6 +97,9 @@ struct ChairPartBuffer : ObjBuffer {
 	static ChairPartBuffer fromSeat(ObjBuffer& seat);
 	static ChairPartBuffer fromPart(ObjBuffer& part, ChairPartBuffer& seat);
 	void resetPartFeatures();
+	Matrix3f getScaleMatrix(Vector3f pb, Vector3f p0, Vector3f p1);
+	void singleScale(Vector3f pb, Vector3f p0, Vector3f p1);
+	void doubleScale();
 private:
 	Vector3f getFeature(float x, float y, float z);
 };

@@ -257,7 +257,7 @@ Vector3f ChairPartBuffer::getFeature(float x, float y, float z) {
 	float error;
 	for (int i = 0; i < nVertices; i++) {
 		v = vertices[i];
-		error = abs(v.x() - x) + abs(v.y() - y) + 3 * abs(v.z() - z);
+		error = abs(v.x() - x) + 2 * abs(v.y() - y) + 3 * abs(v.z() - z);
 		if (error < minError) {
 			feature = v;
 			minError = error;
@@ -289,6 +289,36 @@ void ChairPartBuffer::resetPartFeatures() {
 		partFeatures.bottomRightFront =
 		partFeatures.bottomLeftFront =
 		partFeatures.bottomLeftBack = Vector3f::Zero();
+	}
+}
+
+Matrix3f ChairPartBuffer::getScaleMatrix(Vector3f pb, Vector3f p0, Vector3f p1) {
+	Vector3f v_b0 = p0 - pb;
+	Vector3f v_b1 = p1 - pb;
+
+	float x0 = v_b0.x();
+	float y0 = v_b0.y();
+	float z0 = v_b0.z();
+	float x1 = v_b1.x();
+	float y1 = v_b1.y();
+	float z1 = v_b1.z();
+
+    float sX = abs(x0) > EPSILON && abs(x1) > EPSILON ? x1 / x0 : 1;
+    float sY = abs(y0) > EPSILON && abs(y1) > EPSILON ? y1 / y0 : 1;
+    float sZ = abs(z0) > EPSILON && abs(z1) > EPSILON ? z1 / z0 : 1;
+
+	Matrix3f scale;
+	scale << sX, 0, 0,
+	        0, sY, 0,
+			0, 0, sZ;
+
+	return scale;
+}
+
+void ChairPartBuffer::singleScale(Vector3f pb, Vector3f p0, Vector3f p1) {
+	Matrix3f scale = getScaleMatrix(pb, p0, p1);
+	for (int i = 0; i < nVertices; i++) {
+		vertices[i] = scale * (vertices[i] - pb) + pb;
 	}
 }
 
