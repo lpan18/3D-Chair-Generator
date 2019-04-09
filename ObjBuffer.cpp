@@ -5,6 +5,11 @@
 #include <sstream>
 #include "ObjBuffer.h"
 
+float clamp(float x, float low, float high)
+{
+    return min(high, max(x, low));
+}
+
 // Read Obj file to ObjBuffer
 ObjBuffer ObjBuffer::readObjFile(string filename) {
 	string line;
@@ -190,17 +195,120 @@ void ObjBuffer::resetBound() {
 // TO DO
 // Temporary implementation.
 // To be updated to http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.104.4264&rep=rep1&type=pdf
-Vector3f ObjBuffer::getClosestPointTo(Vector3f p1) {
+Vector3f ObjBuffer::getClosestPointTo(Vector3f p) {
 	float minDistQuad = MAXVALUE;
-	Vector3f p2;
-	for (int i = 0; i < nVertices; i++) {
-	    float distQuad = vertices[i].x() * p1.x() + vertices[i].y() * p1.y() + vertices[i].z() * p1.z();
+	Vector3f pc;
+	for (int i = 0; i < mFaces; i++) {
+		Vector3f p1 = getClosesPoint(faces[i], p);
+		Vector3f p1p = p - p1;
+		float distQuad = p1p.x() * p1p.x() + p1p.y() * p1p.y() + p1p.z() * p1p.z();
 		if (distQuad < minDistQuad) {
-			minDistQuad = distQuad;
-			p2 = vertices[i];
+			pc = p1;
 		}
 	}
-	return p2;
+
+	return pc;
+}
+
+Vector3f ObjBuffer::getClosesPoint(Vector3i f, Vector3f p)
+{
+	Vector3f vt0 = vertices[f[0] - 1];
+	Vector3f vt1 = vertices[f[1] - 1];
+	Vector3f vt2 = vertices[f[2] - 1];
+
+    Vector3f edge0 = vt1 - vt0;
+    Vector3f edge1 = vt2 - vt0;
+    Vector3f v0 = vt0 - p;
+
+    float a = edge0.dot( edge0 );
+    float b = edge0.dot( edge1 );
+    float c = edge1.dot( edge1 );
+    float d = edge0.dot( v0 );
+    float e = edge1.dot( v0 );
+
+    float det = a*c - b*b;
+    float s = b*e - c*d;
+    float t = b*d - a*e;
+
+    if ( s + t < det )
+    {
+        if ( s < 0.f )
+        {
+            if ( t < 0.f )
+            {
+                if ( d < 0.f )
+                {
+                    s = clamp( -d/a, 0.f, 1.f );
+                    t = 0.f;
+                }
+                else
+                {
+                    s = 0.f;
+                    t = clamp( -e/c, 0.f, 1.f );
+                }
+            }
+            else
+            {
+                s = 0.f;
+                t = clamp( -e/c, 0.f, 1.f );
+            }
+        }
+        else if ( t < 0.f )
+        {
+            s = clamp( -d/a, 0.f, 1.f );
+            t = 0.f;
+        }
+        else
+        {
+            float invDet = 1.f / det;
+            s *= invDet;
+            t *= invDet;
+        }
+    }
+    else
+    {
+        if ( s < 0.f )
+        {
+            float tmp0 = b+d;
+            float tmp1 = c+e;
+            if ( tmp1 > tmp0 )
+            {
+                float numer = tmp1 - tmp0;
+                float denom = a-2*b+c;
+                s = clamp( numer/denom, 0.f, 1.f );
+                t = 1-s;
+            }
+            else
+            {
+                t = clamp( -e/c, 0.f, 1.f );
+                s = 0.f;
+            }
+        }
+        else if ( t < 0.f )
+        {
+            if ( a+d > b+e )
+            {
+                float numer = c+e-b-d;
+                float denom = a-2*b+c;
+                s = clamp( numer/denom, 0.f, 1.f );
+                t = 1-s;
+            }
+            else
+            {
+                s = clamp( -e/c, 0.f, 1.f );
+                t = 0.f;
+            }
+        }
+        else
+        {
+            float numer = c+e-b-d;
+            float denom = a-2*b+c;
+            s = clamp( numer/denom, 0.f, 1.f );
+            t = 1.f - s;
+        }
+    }
+
+    return vt0 + s * edge0 + t * edge1;
 }
 
 ChairPartOrigSeatFeatures ChairPartOrigSeatFeatures::fromSeat(ObjBuffer& seat) {

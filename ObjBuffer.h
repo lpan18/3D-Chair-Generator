@@ -63,8 +63,10 @@ struct ObjBuffer {
 	void free();
 	// Reset ObjBound
 	void resetBound();
-	// Get closest point to p1
-	Vector3f getClosestPointTo(Vector3f p1);
+	// Get the closest point to p
+	Vector3f getClosestPointTo(Vector3f p);
+	// Get the closest point from p to face f
+	Vector3f getClosesPoint(Vector3i f, Vector3f p);
 };
 
 struct ChairPartOrigSeatFeatures {
