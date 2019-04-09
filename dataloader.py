@@ -88,18 +88,30 @@ class DataLoader():
             length = len(os.listdir(folder)) // 3
 
             for filename in os.listdir(folder):
-
-                view = int(filename.split(".")[0])
-                view = view % 3
+                view = filename.split(".")[0].split("-")[1]
                 img_path = folder + filename
 
                 if img_path is not None:
-                    if view == 1:
+                    if view == 'side':
                         self.imagesSide.append(img_path)
-                    elif view == 2:
+                    elif view == 'top':
                         self.imagesTop.append(img_path)
                     else:
                         self.imagesFront.append(img_path)
+
+            # for filename in os.listdir(folder):
+
+            #     view = int(filename.split(".")[0])
+            #     view = view % 3
+            #     img_path = folder + filename
+
+            #     if img_path is not None:
+            #         if view == 1:
+            #             self.imagesSide.append(img_path)
+            #         elif view == 2:
+            #             self.imagesTop.append(img_path)
+            #         else:
+            #             self.imagesFront.append(img_path)
 
 
     def setMode(self, mode):

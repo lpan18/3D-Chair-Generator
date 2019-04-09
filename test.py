@@ -13,7 +13,7 @@ from dataloader import DataLoader
 import numpy as np
 
 
-def test_net(net, model='epoch30.pth', data_root='./evaluate-chairs/', gpu=True):
+def test_net(net, model='epoch30.pth', data_root='./Rendered/', gpu=True):
 
     view = ['Top', 'Front', 'Side']
 

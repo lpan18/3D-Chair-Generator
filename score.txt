@@ -1,1 +1,10 @@
-0.533488851132
+tensor(0.0002, device='cuda:0')
+tensor(0.0014, device='cuda:0')
+tensor(1.6213e-06, device='cuda:0')
+tensor(1.6640e-06, device='cuda:0')
+tensor(1.1377e-05, device='cuda:0')
+tensor(7.7701e-07, device='cuda:0')
+tensor(5.5955e-05, device='cuda:0')
+tensor(0.0002, device='cuda:0')
+tensor(0.0001, device='cuda:0')
+tensor(2.7145e-05, device='cuda:0')

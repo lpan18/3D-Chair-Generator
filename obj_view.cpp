@@ -356,23 +356,39 @@ public:
                 chairslabel->setVisible(true);
                 scorelabel->setVisible(true);
                 objs[idx]->setVisible(true);
+
                 objs[idx]->setCallback([this, objname, scorelabel] {
                     ObjViewApp::fileName = objname;
                     mCanvas->loadObj(fileName);
                     float score = 0.0;
-                    if(system("/usr/bin/python score.py 1") == 0){
-                        ifstream file;
-                        file.open("score.txt");
-                        if (!file) {
-                            cout << "Unable to open file";
-                            exit(1); 
-                        }
-                        file >> score;
-                        file.close();
-                        scorelabel->setCaption("Score:  " + to_string(score));
-                    }
+                    
+                    // if(system("/usr/bin/python test.py") == 0){
+                    //     ifstream file;
+                    //     file.open("score.txt");
+                    //     if (!file) {
+                    //         cout << "Unable to open file";
+                    //         exit(1); 
+                    //     }
+                    //     file >> score;
+                    //     file.close();
+                    //     scorelabel->setCaption("Score:  " + to_string(score));
+                    // }
                 });
             }
+
+            if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
+                cout << "Successfully created depth map" << endl; 
+                
+                if (system("/opt/anaconda3/bin/python test.py") == 0) {
+                    cout << "Successfully scored chairs" << endl; 
+                } else {
+                    cout << "Error scoring chair" << endl; 
+                }
+                
+            } else {
+                cout << "Error creating depth map" << endl; 
+            }
+
             performLayout();           
         });            
         

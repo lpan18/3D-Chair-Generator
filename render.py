@@ -1,6 +1,7 @@
 import bpy
 import os
 import math
+from PIL import Image
 
 # ======= HELPFUL LINKS =======
 # https://wiki.blender.org/wiki/Building_Blender
@@ -96,20 +97,45 @@ def generate(filepath, index, view, target_path):
     delete_all_mesh()
 
 
+def compress(filepath):
+    print(filepath)
+    file_path = filepath
+    image = Image.open(file_path)#.convert('L')
+    imw, imh = image.size
+    tgt_size = 224
+    min_size = min(imw, imh)
+    max_size = max(imw, imh)
+    start_x = math.floor((max_size - min_size) / 2) 
+    end_x = start_x + min_size   
+    area = (start_x, 0, end_x, min_size)
+    cropped_img = image.crop(area)
+    cropped_img = cropped_img.resize((tgt_size, tgt_size))
+    cropped_img.save(filepath)
+
+
+
 filenames = []
+imagenames = []
 # source_path = "/Users/trailingend/Documents/SFU/CMPT764/chair-modeling/ChairModelsLegOffset"
 # target_path = "/Users/trailingend/Documents/SFU/CMPT764/chair-modeling/ChairImagesLegOffset"
-source_path = "/media/lei/TOU/2019SpringTerm/GeometricModelling/Project/Data/negative-chairs/ChairModelsLegOffset2"
-target_path = "/media/lei/TOU/2019SpringTerm/GeometricModelling/Project/Data/negative-chairs/ChairImagesLegOffset2"
+source_path = "/home/jayleenz/Documents/CMPT764/chair-modeling/Completion"
+target_path = "/home/jayleenz/Documents/CMPT764/chair-modeling/Rendered"
 
 for root, dirs, files in os.walk(source_path):
     for file in files:
         if '.obj' in file:
             filenames.append(os.path.join(root, file))
-# print(filenames)
 
 for i in range(0, len(filenames)):
     # print(filenames[i])
     generate(filenames[i], i, "front", target_path)
     generate(filenames[i], i, "top", target_path)
     generate(filenames[i], i, "side", target_path)
+
+for root, dirs, files in os.walk(target_path):
+    for file in files:
+        if '.bmp' in file:
+            imagenames.append(os.path.join(root, file))
+
+for i in range(0, len(imagenames)):
+    compress(imagenames[i])

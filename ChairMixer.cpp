@@ -58,23 +58,23 @@ void ChairMixer::transformLeg(ChairPartBuffer& seat, ChairPartBuffer& leg) {
     leg.resetBound();
     leg.resetPartFeatures();
 
-    float legDistFrontBack = abs(leg.partFeatures.topRightBack.y() - leg.partFeatures.topRightFront.y());
+    // float legDistFrontBack = abs(leg.partFeatures.topRightBack.y() - leg.partFeatures.topRightFront.y());
 
-    if (legDistFrontBack / seat.origSeatFeatures.depth < LEG_DIST_THLD) {
-        // In this case, the legs are considered as one whole entity.
-        Vector3f pb(leg.bound.getCenter().x(), leg.bound.maxY, leg.bound.minZ);
-        Vector3f p0 = leg.partFeatures.topRightBack;
-        Vector3f p1 = seat.getClosestPointTo(p0);
-        leg.singleScale(pb, p0, p1);
-    } else {
-        // In this case, we classify legs as back legs and front legs
-        Vector3f pb(leg.bound.getCenter().x(), leg.bound.getCenter().y(), leg.bound.minZ);
-        Vector3f p0 = leg.partFeatures.topRightBack;
-        Vector3f p1 = seat.getClosestPointTo(p0);
-        Vector3f q0 = leg.partFeatures.topRightFront;
-        Vector3f q1 = seat.getClosestPointTo(q0);
-        leg.doubleScale(pb, p0, p1, q0, q1);
-    }
+    // if (legDistFrontBack / seat.origSeatFeatures.depth < LEG_DIST_THLD) {
+    //     // In this case, the legs are considered as one whole entity.
+    //     Vector3f pb(leg.bound.getCenter().x(), leg.bound.maxY, leg.bound.minZ);
+    //     Vector3f p0 = leg.partFeatures.topRightBack;
+    //     Vector3f p1 = seat.getClosestPointTo(p0);
+    //     leg.singleScale(pb, p0, p1);
+    // } else {
+    //     // In this case, we classify legs as back legs and front legs
+    //     Vector3f pb(leg.bound.getCenter().x(), leg.bound.getCenter().y(), leg.bound.minZ);
+    //     Vector3f p0 = leg.partFeatures.topRightBack;
+    //     Vector3f p1 = seat.getClosestPointTo(p0);
+    //     Vector3f q0 = leg.partFeatures.topRightFront;
+    //     Vector3f q1 = seat.getClosestPointTo(q0);
+    //     leg.doubleScale(pb, p0, p1, q0, q1);
+    // }
 }
 
 void ChairMixer::transformBack(ChairPartBuffer& seat, ChairPartBuffer& back) {
