@@ -32,13 +32,19 @@
 #include <nanogui/glcanvas.h>
 #include <iostream>
 #include <string>
+// List files
+#include <experimental/filesystem>
+#include <cstdlib>
+#include <fstream>
+#include <stdio.h>
+#include <sys/stat.h>
+
 
 // Includes for the GLTexture class.
 #include <algorithm>
 #include <cstdint>
 #include <memory>
 #include <utility>
-
 
 #if defined(__GNUC__)
 #  pragma GCC diagnostic ignored "-Wmissing-field-initializers"
@@ -61,15 +67,10 @@
 #  include <windows.h>
 #endif
 
+#include "ChairMixer.h"
 #include "Mesh.h"
 
-using std::cout;
-using std::cerr;
-using std::endl;
-using std::string;
-using std::vector;
-using std::pair;
-using std::to_string;
+using namespace std;
 
 using nanogui::Screen;
 using nanogui::Window;
@@ -91,43 +92,56 @@ public:
         using namespace nanogui;
         
         mShader.initFromFiles("a_smooth_shader", "StandardShading.vertexshader", "StandardShading.fragmentshader");
-        
+        mArcball.setSize({500,500});
+
         // After binding the shader to the current context we can send data to opengl that will be handled
         // by the vertex shader and then by the fragment shader, in that order.
         // if you want to know more about modern opengl pipeline take a look at this link
         // https://www.khronos.org/opengl/wiki/Rendering_Pipeline_Overview
         mShader.bind();
 
+        mShader.uploadAttrib("vertexPosition_modelspace", positions);
+        mShader.uploadAttrib("color", colors);
+        mShader.uploadAttrib("vertexNormal_modelspace", normals);
+
+        //ProjectionMatrixID
+        float fovy = 90.0f, aspect = 1.0f;
+        float near = 0.1f, far = 100.0f;
+        float top = near * tan(fovy * M_PI / 360);
+        float bottom = -top;
+        float right = top * aspect;
+        float left = -right;
+        Matrix4f P = frustum(left, right, bottom, top, near, far);
+
+        mShader.setUniform("P", P);
+
         // ViewMatrixID
-        // change your rotation to work on the camera instead of rotating the entire world with the MVP matrix
-        Matrix4f V;
-        V.setIdentity();
+        Matrix4f V = lookAt(Vector3f(0,0,3), Vector3f(0,0,0), Vector3f(0,1,0));
         mShader.setUniform("V", V);
-        
-        //ModelMatrixID
-        Matrix4f M;
-        M.setIdentity();
-        mShader.setUniform("M", M);
-        
+
+        mTranslation = Vector3f(0, 0, 0);
+        mZoom = Vector3f(4, 4, 4);
+
         // This the light origin position in your environment, which is totally arbitrary
         // however it is better if it is behind the observer
         mShader.setUniform("LightPosition_worldspace", Vector3f(2,-6,-4));
 
-        setIsometricView();
+        string path = "ChairModels";
+        mMixer.readFolder(path);
     }
 
     //flush data on call
     ~MyGLCanvas() {
-        mShader.free();
         delete mMesh;
+        mMixer.free();
+        mShader.free();
     }
 
     // method to load obj
     void loadObj(string fileName) {
         delete mMesh;
         mMesh = new Mesh(fileName);
-
-        positions = mMesh->getPositions();
+        positions = mMesh->getPositions();        
         normals = mMesh->getNormals(&positions);
         smoothNormals = mMesh->getSmoothNormals(&normals);
         colors = mMesh->getColors();
@@ -135,43 +149,11 @@ public:
 
     // Temp test method
     void tempTest() {
+        ObjBuffer mixed = mMixer.tempTest();
+
         delete mMesh;
-
-        string fileName1 = "ChairModels/chair0004.obj";
-        ObjBuffer obj1 = ObjBuffer::readObjFile(fileName1);
-        ObjBuffer obj11 = obj1.getGroup("seat");
-        ObjBuffer obj12 = obj1.getGroup("leg");
-        ObjBuffer obj13 = obj1.getGroup("back");
-        ObjBuffer obj14 = obj1.getGroup("arm");
-
-        string fileName2 = "ChairModels/chair0160.obj";
-        ObjBuffer obj2 = ObjBuffer::readObjFile(fileName2);
-        ObjBuffer obj21 = obj2.getGroup("seat");
-        ObjBuffer obj22 = obj2.getGroup("leg");
-        ObjBuffer obj23 = obj2.getGroup("back");
-        ObjBuffer obj24 = obj2.getGroup("arm");
-
-
-        vector<ObjBuffer> objBuffers;
-        objBuffers.push_back(obj11);
-        objBuffers.push_back(obj22);
-        objBuffers.push_back(obj13);
-        objBuffers.push_back(obj24);
-
-        ObjBuffer obj3 = ObjBuffer::combineObjBuffers(objBuffers);
-        mMesh = new Mesh(obj3);
-
-        obj24.destroy();
-        obj23.destroy();
-        obj22.destroy();
-        obj21.destroy();
-        obj2.destroy();
-        obj14.destroy();
-        obj13.destroy();
-        obj12.destroy();
-        obj11.destroy();
-        obj1.destroy();
-
+        mMesh = new Mesh(mixed);
+        
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);
         smoothNormals = mMesh->getSmoothNormals(&normals);
@@ -186,45 +168,58 @@ public:
         }
     }
 
-    void renderDepthImage() {
-        if (mMesh != NULL) {
-            mMesh->renderDepthImage();
-        } else {
-            cout << "No object in scene" << endl;
-        }
-    }
-
-    void setFrontView() {
-        mMVP << -0.5, 0, 0, 0,
-                0, 0, 0.5, 0,
-                0, 0.5, 0, 0,
-                0, 0, 0, 1;
-    }
-
-    void setSideView() {
-        mMVP << 0, -0.5, 0, 0,
-                0, 0, 0.5, 0,
-                -0.5, 0, 0, 0,
-                0, 0, 0, 1;
-    }
-
-    void setTopView() {
-        mMVP << -0.5, 0, 0, 0,
-                0, 0.5, 0, 0,
-                0, 0, -0.5, 0,
-                0, 0, 0, 1;
-    }
-
-    void setIsometricView() {
-        mMVP << -0.379379, -0.325686, -1.49012e-08, 0,
-                -0.0816341, 0.0950923, 0.484039, 0,
-                -0.315289, 0.367268, -0.125326, 0,
-                0, 0, 0, 1;
-    }
-
     // Method to set shading mode
-    void setShadingMode(float fShadingMode) {
+    void setShadingMode(int fShadingMode) {
         mShadingMode = fShadingMode;
+    }
+    //Method to update the rotation on each axis
+    void setRotation(nanogui::Matrix4f matRotation) {
+        mRotation = matRotation;
+    }
+
+    void setZoom(nanogui::Vector3f vZoom) {
+        mZoom = vZoom;
+    }
+
+    void setTranslation(nanogui::Vector3f vTranslation) {
+        mTranslation = vTranslation;
+    }
+
+    bool mouseButtonEvent(const Vector2i &p, int button, bool down, int modifiers) override {
+        if (button == GLFW_MOUSE_BUTTON_2) {    
+            mArcball.button(p, down);
+            return true;
+        }
+        return false;
+    }
+
+    // right click => rotation
+    bool mouseMotionEvent(const Eigen::Vector2i &p, const Vector2i &rel, int button, int modifiers) override {
+        if (button == GLFW_MOUSE_BUTTON_3 ) {   
+            mArcball.motion(p);
+            return true;
+        }
+        return false;
+    }
+
+    // left click => translation
+    bool mouseDragEvent(const Vector2i &p, const Vector2i &rel, int button, int modifiers) override {
+        if (button == GLFW_MOUSE_BUTTON_2) { 
+            setTranslation(mTranslation + Eigen::Vector3f(rel.x()/100.0f, -rel.y()/100.0f, 0.0f));
+            return true;
+        }
+        return false;
+    }
+
+    // scroll => zooming
+    bool scrollEvent(const Vector2i &p, const Vector2f &rel) override {
+        float scaleFactor = rel.y()/5.0f;
+        if(mZoom.x() + scaleFactor <= 0 || mZoom.y() + scaleFactor <= 0 || mZoom.z() + scaleFactor <= 0)
+        {
+            return false;
+        }
+        setZoom(mZoom + Eigen::Vector3f(scaleFactor, scaleFactor, scaleFactor));
+        return true;
     }
 
     //OpenGL calls this method constantly to update the screen.
@@ -236,119 +231,189 @@ public:
         mShader.bind();
 
         MatrixXf shadingNormal = (mShadingMode == 1 || mShadingMode == 4)  ? smoothNormals : normals;
-	    //this simple command updates the positions matrix. You need to do the same for color and indices matrices too
+	    //dates the positions matrix,color and indices matrices
         mShader.uploadAttrib("vertexPosition_modelspace", positions);
         mShader.uploadAttrib("color", colors);
 	    mShader.uploadAttrib("vertexNormal_modelspace", shadingNormal);
 
-        // Reset MVP
-        mShader.setUniform("MVP", mMVP);
+        //ModelMatrixID
+        setRotation(mArcball.matrix());
+        Matrix4f M = translate(mTranslation) * mRotation * scale(mZoom);
+        mShader.setUniform("M", M);
 
-	    // If enabled, does depth comparisons and update the depth buffer.
-	    // Avoid changing if you are unsure of what this means.
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_PROGRAM_POINT_SIZE_EXT);
+        glPointSize(5);
 
-        if (mShadingMode != 2) {
+        if (mShadingMode != 2 && mShadingMode != 5) {
             mShader.drawArray(GL_TRIANGLES, 0, positions.cols() / 3);
         }
-        if (mShadingMode != 0 && mShadingMode != 1) {
+        if (mShadingMode != 0 && mShadingMode != 1 && mShadingMode != 5) {
             mShader.drawArray(GL_LINES, positions.cols() / 3, positions.cols() / 3 * 2);
-        }
+            mShader.drawArray(GL_POINTS, positions.cols() / 3, positions.cols() / 3 * 2);
 
+        }
+        // PointsCloud
+        if ( mShadingMode == 5){
+            mShader.drawArray(GL_POINTS, positions.cols() / 3, positions.cols() / 3 * 2);
+        }
         glDisable(GL_DEPTH_TEST);
+        glDisable(GL_PROGRAM_POINT_SIZE_EXT);
+
     }
 
 //Instantiation of the variables that can be acessed outside of this class to interact with the interface
 //Need to be updated if a interface element is interacting with something that is inside the scope of MyGLCanvas
 private:
+    nanogui::GLShader mShader;
+    Eigen::Matrix4f mRotation;
+    Eigen::Vector3f mZoom;
+    Eigen::Vector3f mTranslation;
+    nanogui::Arcball mArcball;
+    ChairMixer mMixer;
     Mesh *mMesh = NULL;
-    Matrix4f mMVP;
     MatrixXf positions;
     MatrixXf normals;
     MatrixXf smoothNormals;
     MatrixXf colors;
-    nanogui::GLShader mShader;
     int mShadingMode = 0;
 };
 
 class ObjViewApp : public nanogui::Screen {
 public:
-    ObjViewApp() : nanogui::Screen(Eigen::Vector2i(1000, 600), "Chair Modeling", false) {
+    ObjViewApp() : nanogui::Screen(Eigen::Vector2i(1000, 1000), "Chair Modeling", false) {
         using namespace nanogui;
 
 	    // Create a window context in which we will render the OpenGL canvas
         Window *window = new Window(this, "Obj Viewer");
         window->setPosition(Vector2i(15, 15));
         window->setLayout(new GroupLayout());
-	
+
 	    // OpenGL canvas initialization
         mCanvas = new MyGLCanvas(window);
         mCanvas->setBackgroundColor({100, 100, 100, 255});
-        mCanvas->setSize({400, 400});
+        mCanvas->setSize({500, 500});
 
-    	// Create another window and insert widgets into it
-	    Window *anotherWindow = new Window(this, "Widgets");
-        anotherWindow->setPosition(Vector2i(485, 15));
-        anotherWindow->setLayout(new GroupLayout());
+    	// Create widgets window and insert widgets into it
+	    Window *widgets = new Window(this, "Widgets");
+        widgets->setPosition(Vector2i(560, 15));
+        widgets->setLayout(new GroupLayout());
+	    widgets->setFixedSize(Vector2i(200, 1000));
 
-	    // Open and save obj file
-        new Label(anotherWindow, "File dialog", "sans-bold", 20);
-        Button *openBtn  = new Button(anotherWindow, "Open");
+	    // Open obj file
+        new Label(widgets, "File dialog", "sans-bold", 20);
+        Button *openBtn  = new Button(widgets, "Open");
         openBtn->setCallback([&] {
             string fileName = file_dialog({ {"obj", "obj file"} }, false);
             ObjViewApp::fileName = fileName;
             mCanvas->loadObj(fileName);
         });
-        Button *saveBtn = new Button(anotherWindow, "Save");
+
+        // Save obj file
+        Button *saveBtn = new Button(widgets, "Save");
         saveBtn->setCallback([&] {
             string fileName = file_dialog({ {"obj", "obj file"} }, true);
             mCanvas->writeObj(fileName);
         });
-        Button *testBtn = new Button(anotherWindow, "Test");
-        testBtn->setCallback([&] {
-            mCanvas->tempTest();
-            mCanvas->renderDepthImage();
-        });
 
-        new Label(anotherWindow, "Views", "sans-bold", 20);
-        Widget *panelViews = new Widget(anotherWindow);
-        panelViews->setLayout(new BoxLayout(Orientation::Horizontal,
-                                       Alignment::Middle, 0, 2));
+        // Test button
+        Button *testBtn = new Button(widgets, "Test");
+
+        Label *chairslabel = new Label(widgets, "Chair Models", "sans-bold", 20);
+        Label *scorelabel = new Label(widgets, "Score:  ", "sans-bold", 20);
+        chairslabel->setVisible(false);
+        scorelabel->setVisible(false);
+
+        // Generate chair obj buttons
+        vector<Button*> objs;
         
-        Button *frontView = new Button(panelViews, "Front");
-        frontView->setCallback([&] {
-            mCanvas->setFrontView();
-        });
+        // create output directory 
+        string folder = "Completion"; 
+        struct stat sb;
+        if (!(stat(folder.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode)))
+        {
+            const int dir_err = system("mkdir -p Completion");
+            if (-1 == dir_err)
+            {
+                printf("Error creating directory!n");
+                exit(1);
+            }
+        }
 
-        Button *sideView = new Button(panelViews, "Side");
-        sideView->setCallback([&] {
-            mCanvas->setSideView();
-        });
+        size_t n = 0; 
+        // count existing files in folder
+        // for (const auto & entry : experimental::filesystem::directory_iterator(folder)){
+            // cout << entry.path() << endl;
+            // n++;
+        // }
+        if(n < 5) n = 5; // generate 5 objs in one test
+        for(size_t i = 0; i < n; i++){
+            Button *obj = new Button(widgets, "chair " + to_string(i) + ".obj");
+            obj->setVisible(false);  
+            objs.push_back(obj);  
+        }  
+        
+        // call back function for testBtn 
+        testBtn->setCallback([this,objs,chairslabel,scorelabel,n,folder]() {
+            // bool wasVisible = objs[0]->visible();
+            for(size_t idx = 0; idx < n; idx++)
+            {  
+                string objname = folder + "/"  + to_string(idx) + ".obj";
+                mCanvas->tempTest();
+                mCanvas->writeObj(objname);
 
-        Button *topView = new Button(panelViews, "Top");
-        topView->setCallback([&] {
-            mCanvas->setTopView();
-        });
+                chairslabel->setVisible(true);
+                scorelabel->setVisible(true);
+                objs[idx]->setVisible(true);
 
-        Button *isometricView = new Button(panelViews, "Isometric");
-        isometricView->setCallback([&] {
-            mCanvas->setIsometricView();
-        });
+                objs[idx]->setCallback([this, objname, scorelabel, idx] {
+                    ObjViewApp::fileName = objname;
+                    mCanvas->loadObj(fileName);
+                    vector<float> scores; 
+                    ifstream file;
+                    file.open("score.txt");
+                    if (!file) {
+                        cout << "Unable to open file";
+                        exit(1); 
+                    }
+                    string line;
+                    while (getline(file, line)) {
+                        scores.push_back(strtof((line).c_str(),0));
+                    }
+                    file.close();
+                    scorelabel->setCaption("Score:  " + to_string(scores[idx]));
+                });
+            }
 
+            if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
+                cout << "Successfully created depth map" << endl; 
+                if(system("/usr/bin/python3 test.py ") == 0){
+                // if (system("/opt/anaconda3/bin/python test.py") == 0) {
+                    cout << "Successfully scored chairs" << endl; 
+                } else {
+                    cout << "Error scoring chairs" << endl; 
+                }
+            } else {
+                cout << "Error creating depth map" << endl; 
+            }
+
+            performLayout();           
+        });            
+        
     	// Shading mode
-        new Label(anotherWindow, "Shading Mode", "sans-bold", 20);
-        Widget *panelCombo = new Widget(anotherWindow);
+        new Label(widgets, "Shading Mode", "sans-bold", 20);
+        Widget *panelCombo = new Widget(widgets);
         panelCombo->setLayout(new BoxLayout(Orientation::Horizontal,
                                        Alignment::Middle, 0, 2));
 
-        ComboBox *combo = new ComboBox(anotherWindow, { "Flat", "Smooth", "Wireframe", "Flat+Wireframe", "Smooth+Wireframe"} );
+        ComboBox *combo = new ComboBox(widgets, { "Flat", "Smooth", "Wireframe", "Flat+Wireframe", "Smooth+Wireframe", "PointsCloud"} );
         combo->setCallback([&](int value) {
             mCanvas->setShadingMode(value);
         });
 
         // Quit button
-        new Label(anotherWindow, "Quit", "sans-bold", 20);
-        Button *quitBtn = new Button(anotherWindow, "Quit");
+        new Label(widgets, "Quit", "sans-bold", 20);
+        Button *quitBtn = new Button(widgets, "Quit");
         quitBtn->setCallback([&] {
             auto dlg = new MessageDialog(this, MessageDialog::Type::Warning, "Quit", "Are you sure to shut down?", "No", "Yes", true);
             dlg->setCallback([](int result) { 
@@ -370,16 +435,15 @@ public:
         Screen::draw(ctx);
     }
 
-
 private:
     MyGLCanvas *mCanvas;
     string fileName;
-    int sdMode = 0;
-    int sdLevel = 0;
 };
 
 int main(int /* argc */, char ** /* argv */) {
+
     try {
+        srand (56843658);
         nanogui::init();
 
         /* scoped variables */ {
@@ -398,7 +462,6 @@ int main(int /* argc */, char ** /* argv */) {
             std::cerr << error_msg << endl;
         #endif
         return -1;
-    }
-
+    } 
     return 0;
 }
