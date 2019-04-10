@@ -62,10 +62,11 @@ void ChairMixer::transformLeg(ChairPartBuffer& seat, ChairPartBuffer& leg) {
 
     if (legDistFrontBack / seat.origSeatFeatures.depth < LEG_DIST_THLD) {
         // In this case, the legs are considered as one whole entity.
-        Vector3f pb(leg.bound.getCenter().x(), leg.bound.maxY, leg.bound.minZ);
+        Vector3f pb(leg.bound.getCenter().x(), leg.bound.getCenter().y(), leg.bound.getCenter().z());
         Vector3f p0 = leg.partFeatures.topRightBack;
         Vector3f p1 = seat.getClosestPointTo(p0);
-        leg.singleScale(pb, p0, p1);
+        leg.singleTranslation(pb, p0, p1);
+        // leg.align(leg.origSeatFeatures.bottomCenter);
     } else {
         // In this case, we classify legs as back legs and front legs
         Vector3f pb(leg.bound.getCenter().x(), leg.bound.getCenter().y(), leg.bound.minZ);
@@ -73,8 +74,11 @@ void ChairMixer::transformLeg(ChairPartBuffer& seat, ChairPartBuffer& leg) {
         Vector3f p1 = seat.getClosestPointTo(p0);
         Vector3f q0 = leg.partFeatures.topRightFront;
         Vector3f q1 = seat.getClosestPointTo(q0);
-        leg.doubleScale(pb, p0, p1, q0, q1);
+        leg.doubleTranslation(pb, p0, p1, q0, q1);
+        //leg.align(leg.origSeatFeatures.bottomCenter);
     }
+    leg.resetBound();
+    leg.resetPartFeatures();
 }
 
 void ChairMixer::transformBack(ChairPartBuffer& seat, ChairPartBuffer& back) {
@@ -88,7 +92,13 @@ void ChairMixer::transformBack(ChairPartBuffer& seat, ChairPartBuffer& back) {
         back.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, back.vertices[i], back.origSeatFeatures.backTopCenter, seat.origSeatFeatures.backTopCenter);
     }
 
+    back.resetBound();
     back.resetPartFeatures();
+
+    Vector3f pb(back.bound.getCenter().x(), back.bound.getCenter().y(), back.bound.getCenter().z());
+    Vector3f p0 = back.partFeatures.bottomRightBack;
+    Vector3f p1 = seat.getClosestPointTo(p0);
+    back.singleTranslation(pb, p0, p1);
 }
 
 void ChairMixer::transformArm(ChairPartBuffer& seat, ChairPartBuffer& arm) {

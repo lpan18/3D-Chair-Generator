@@ -192,124 +192,79 @@ void ObjBuffer::resetBound() {
 	bound.minZ = minZ;
 }
 
+float getDist(Vector3f vt, Vector3f p){
+	Vector3f dvt = vt - p;
+	return dvt.x() * dvt.x() + dvt.y() * dvt.y() + dvt.z() * dvt.z();
+}
+
 // TO DO
 // Temporary implementation.
 // To be updated to http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.104.4264&rep=rep1&type=pdf
 Vector3f ObjBuffer::getClosestPointTo(Vector3f p) {
 	float minDistQuad = MAXVALUE;
 	Vector3f pc;
-	for (int i = 0; i < mFaces; i++) {
-		Vector3f p1 = getClosesPoint(faces[i], p);
-		Vector3f p1p = p - p1;
-		float distQuad = p1p.x() * p1p.x() + p1p.y() * p1p.y() + p1p.z() * p1p.z();
+	for (int i = 0; i < nVertices; i++) {
+		float distQuad = getDist(vertices[i], p);
 		if (distQuad < minDistQuad) {
-			pc = p1;
+			minDistQuad = distQuad;
+			pc = vertices[i];
 		}
 	}
 
+	for (int i = 0; i < mFaces; i++) {
+		Vector3i f = faces[i];
+		Vector3f vt0 = vertices[f[0] - 1];
+		Vector3f vt1 = vertices[f[1] - 1];
+		Vector3f vt2 = vertices[f[2] - 1];	
+		Vector3f vt_center = (vt0 + vt1 + vt2) / 3.0f;			
+		float dist_center = getDist(vt_center, p);
+		if (dist_center < minDistQuad) {
+			minDistQuad = dist_center;
+			pc = vt_center;
+		}
+	}
+	// for (int i = 0; i < mFaces; i++) {
+	// 	Vector3f p1 = getClosesPoint(faces[i], p);
+	// 	Vector3f p1p = p - p1;
+	// 	if(p.x() != 0 && p.y() != 0 && p.z() != 0){
+	// 		float distQuad = p1p.x() * p1p.x() + p1p.y() * p1p.y() + p1p.z() * p1p.z();
+	// 		if (distQuad < minDistQuad) {
+	// 			pc = p1;
+	// 		}
+	// 	}
+	// }
 	return pc;
 }
 
-Vector3f ObjBuffer::getClosesPoint(Vector3i f, Vector3f p)
-{
-	Vector3f vt0 = vertices[f[0] - 1];
-	Vector3f vt1 = vertices[f[1] - 1];
-	Vector3f vt2 = vertices[f[2] - 1];
-
-    Vector3f edge0 = vt1 - vt0;
-    Vector3f edge1 = vt2 - vt0;
-    Vector3f v0 = vt0 - p;
-
-    float a = edge0.dot( edge0 );
-    float b = edge0.dot( edge1 );
-    float c = edge1.dot( edge1 );
-    float d = edge0.dot( v0 );
-    float e = edge1.dot( v0 );
-
-    float det = a*c - b*b;
-    float s = b*e - c*d;
-    float t = b*d - a*e;
-
-    if ( s + t < det )
-    {
-        if ( s < 0.f )
-        {
-            if ( t < 0.f )
-            {
-                if ( d < 0.f )
-                {
-                    s = clamp( -d/a, 0.f, 1.f );
-                    t = 0.f;
-                }
-                else
-                {
-                    s = 0.f;
-                    t = clamp( -e/c, 0.f, 1.f );
-                }
-            }
-            else
-            {
-                s = 0.f;
-                t = clamp( -e/c, 0.f, 1.f );
-            }
-        }
-        else if ( t < 0.f )
-        {
-            s = clamp( -d/a, 0.f, 1.f );
-            t = 0.f;
-        }
-        else
-        {
-            float invDet = 1.f / det;
-            s *= invDet;
-            t *= invDet;
-        }
-    }
-    else
-    {
-        if ( s < 0.f )
-        {
-            float tmp0 = b+d;
-            float tmp1 = c+e;
-            if ( tmp1 > tmp0 )
-            {
-                float numer = tmp1 - tmp0;
-                float denom = a-2*b+c;
-                s = clamp( numer/denom, 0.f, 1.f );
-                t = 1-s;
-            }
-            else
-            {
-                t = clamp( -e/c, 0.f, 1.f );
-                s = 0.f;
-            }
-        }
-        else if ( t < 0.f )
-        {
-            if ( a+d > b+e )
-            {
-                float numer = c+e-b-d;
-                float denom = a-2*b+c;
-                s = clamp( numer/denom, 0.f, 1.f );
-                t = 1-s;
-            }
-            else
-            {
-                s = clamp( -e/c, 0.f, 1.f );
-                t = 0.f;
-            }
-        }
-        else
-        {
-            float numer = c+e-b-d;
-            float denom = a-2*b+c;
-            s = clamp( numer/denom, 0.f, 1.f );
-            t = 1.f - s;
-        }
-    }
-
-    return vt0 + s * edge0 + t * edge1;
-}
+// https://math.stackexchange.com/questions/544946/determine-if-projection-of-3d-point-onto-plane-is-within-a-triangle/544947
+// Vector3f ObjBuffer::getClosesPoint(Vector3i f, Vector3f p)
+// {
+// 	Vector3f vt0 = vertices[f[0] - 1];
+// 	Vector3f vt1 = vertices[f[1] - 1];
+// 	Vector3f vt2 = vertices[f[2] - 1];
+//     Vector3f u = vt1 - vt0;
+//     Vector3f v = vt2 - vt0;
+//     Vector3f n = u.cross(v);
+//     Vector3f w = p - vt0;
+//     // Barycentric coordinates of the projection P′of P onto T:
+//     float gamma = u.cross(w).dot(n) / (n.dot(n));
+//     float beta = w.cross(v).dot(n) / (n.dot(n));
+//     float alpha = 1 - gamma - beta;
+// 	cout << "alpha " << alpha << endl;
+// 	cout << "beta " << beta << endl;
+// 	cout << "gamma " << gamma << endl;
+//     // The point P′ lies inside T if:
+//     bool isInside = ((0 <= alpha) && (alpha <= 1) &&
+//             (0 <= beta)  && (beta  <= 1) &&
+//             (0 <= gamma) && (gamma <= 1));
+// 	if(isInside){
+// 		cout << "isInside" << endl;
+// 		return alpha * vt0 + beta * vt1 + gamma * vt2;
+// 	}else{
+// 		cout << "outSide" << endl;
+// 		return Vector3f(0,0,0);
+// 	}
+// }
 
 ChairPartOrigSeatFeatures ChairPartOrigSeatFeatures::fromSeat(ObjBuffer& seat) {
 	seat.resetBound();
@@ -419,7 +374,6 @@ Matrix3f ChairPartBuffer::getScaleMatrix(Vector3f pb, Vector3f p0, Vector3f p1) 
 	scale << sX, 0, 0,
 	        0, sY, 0,
 			0, 0, sZ;
-
 	return scale;
 }
 
@@ -427,6 +381,46 @@ void ChairPartBuffer::singleScale(Vector3f pb, Vector3f p0, Vector3f p1) {
 	Matrix3f scale = getScaleMatrix(pb, p0, p1);
 	for (int i = 0; i < nVertices; i++) {
 		vertices[i] = scale * (vertices[i] - pb) + pb;
+	}
+}
+
+Vector3f ChairPartBuffer::getTranslated(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v) {
+	Vector3f offsetbase = p1 - p0;
+	Vector3f offsetv;
+	offsetv << (pb.x() - v.x()) / (pb.x() - p0.x()) * offsetbase.x(), offsetbase.y(), offsetbase.z();
+	return v + offsetv;
+}
+
+void ChairPartBuffer::singleTranslation(Vector3f pb, Vector3f p0, Vector3f p1) {
+	for (int i = 0; i < nVertices; i++) {
+		vertices[i] = getTranslated(pb, p0, p1, vertices[i]);
+	}
+}
+
+void ChairPartBuffer::doubleTranslation(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1) {
+	for (int i = 0; i < nVertices; i++) {
+		Vector3f vp = getTranslated(pb, p0, p1, vertices[i]);
+		Vector3f vq = getTranslated(pb, q0, q1, vertices[i]);
+		float wp = vertices[i].y() > p0.y() ? 1.0f :
+		            vertices[i].y() < q0.y() ? 0.0f :
+					(vertices[i].y() - q0.y()) / (p0.y() - q0.y());
+					
+		vertices[i] = vp * wp + vq * (1.0f - wp);
+	}
+}
+
+void ChairPartBuffer::align(Vector3f p_target) {
+	Vector3f pb(bound.getCenter().x(), bound.getCenter().y(), bound.getCenter().z());
+	float offsetX = p_target.x() - pb.x();
+	float offsetY = p_target.y() - pb.y();
+	// cout << "seatX " << p_target.x() << " seatY " << p_target.y() << endl;
+	// cout << "pb " << pb.x() << " pb " << pb.y() << endl;
+	// cout << "offsetX " << offsetX << " offsetY " << offsetY << endl;
+	// cout << "before " << vertices[0].x() << endl;
+	// cout << "after" << vertices[0].x() + offsetX << endl;
+	for (int i = 0; i < nVertices; i++) {
+		vertices[i].x() += offsetX;
+		vertices[i].y() += offsetY;
 	}
 }
 
@@ -442,19 +436,25 @@ void ChairPartBuffer::doubleScale(Vector3f pb, Vector3f p0, Vector3f p1, Vector3
 	// Vertex with Q transformation
 	Vector3f vq;
 	for (int i = 0; i < nVertices; i++) {
-		if (vertices[i].y() > p0.y()) {
-			wp = 1;
-			wq = 0;
-		} else if (vertices[i].y() < q0.y()) {
-			wp = 0;
-			wq = 1;
-		} else {
-			wp = (p0.y() - vertices[i].y()) / (p0.y() - q0.y());
-			wq = 1 - wp;
-		}
+		// if (vertices[i].y() > p0.y()) {
+		// 	wp = 1;
+		// 	wq = 0;
+		// } else if (vertices[i].y() < q0.y()) {
+		// 	wp = 0;
+		// 	wq = 1;
+		// } else {
+		// 	wp = (p0.y() - vertices[i].y()) / (p0.y() - q0.y());
+		// 	wq = 1 - wp;
+		// }
+
+		// temp
+		wp = 0;
+		wq = 1;
+		// temp
+
 		vp = scaleP * (vertices[i] - pb) + pb;
 		vq = scaleQ * (vertices[i] - pb) + pb;
-		vertices[i] = wp * vp + wq * vq; 
+		vertices[i] = wp * vp + wq * vq;
 	}
 }
 
