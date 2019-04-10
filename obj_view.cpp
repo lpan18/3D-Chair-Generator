@@ -387,8 +387,8 @@ public:
 
             if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
                 cout << "Successfully created depth map" << endl; 
-                if(system("/usr/bin/python3 test.py ") == 0){
-                // if (system("/opt/anaconda3/bin/python test.py") == 0) {
+                // if(system("/usr/bin/python3 test.py ") == 0){
+                if (system("/opt/anaconda3/bin/python test.py") == 0) {
                     cout << "Successfully scored chairs" << endl; 
                 } else {
                     cout << "Error scoring chairs" << endl; 

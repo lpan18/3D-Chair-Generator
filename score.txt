@@ -1,10 +1,10 @@
-0.46076787
-0.006735129
-1.0674544e-06
-0.020783557
-0.0005804443
-8.588194e-06
-0.46587634
-7.01043e-05
-0.13000719
-0.35614312
+tensor(0.0002, device='cuda:0')
+tensor(5.6633e-06, device='cuda:0')
+tensor(2.3577e-07, device='cuda:0')
+tensor(0.0001, device='cuda:0')
+tensor(0.0009, device='cuda:0')
+tensor(7.4911e-06, device='cuda:0')
+tensor(0.0010, device='cuda:0')
+tensor(7.0469e-05, device='cuda:0')
+tensor(0.0005, device='cuda:0')
+tensor(1.3389e-05, device='cuda:0')

@@ -3,14 +3,6 @@
 #include "W_edge.h"
 #include "ObjBuffer.h"
 
-// #include <GL/osmesa.h>
-#include <GL/glu.h>
-#include <iomanip>
-#include <GL/gl.h>
-#include <GL/glut.h>
-#include <opencv/highgui.h>
-#include <opencv/cv.h>
-
 using namespace std;
 using Eigen::Vector3f;
 using Eigen::Vector3i;
@@ -53,9 +45,6 @@ public:
 	}
 	// Write mesh to an obj file
 	void writeObj(string fileName);
-	// Render depth image
-	void renderDepthImage();
-
 protected:
     // Number of vertices
 	int nVertices = 0;
@@ -82,23 +71,5 @@ protected:
 	void constructLeft();
 	// Get vertex normals for smooth shading
 	Vector3f getVertexSN(Vertex* v, MatrixXf* normals);
-
-	// helper functions of rendering
-	void renderOneModel(string filename, IplImage* image);
-	void renderOneDepth(std::string filename, string& depthIndex, 
-						MatrixXf vMatrix, MatrixXf fMatrix,
-						double xzRot, double xyRot, 
-						IplImage* image);
-	void faceToMatrix(MatrixXf& fMatrix);
-	void getDepth(double v,double vmin,double vmax,int &depth);
-	MatrixXf genRotMat(double theta0, double theta1);
-	MatrixXf genTiltMat(double theta);
-	MatrixXf scalePoints(MatrixXf coor, MatrixXf center, MatrixXf size);
-	void uint2uchar(unsigned int in, unsigned char* out);
-	unsigned int uchar2uint(unsigned char* in);
-	void mexFunction(MatrixXf P, int width, int height, 
-					 MatrixXf vMat, MatrixXf fMatrix, 
-					 unsigned int* result, int &resultNum, 
-					 vector<float> &depth);
 };
 #endif //MESH_H
