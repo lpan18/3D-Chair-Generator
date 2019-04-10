@@ -19,8 +19,7 @@ def compress(filepath):
     cropped_img.save(filepath)
 
 filenames = []
-# source_path = "/Users/trailingend/Documents/SFU/CMPT764/chair-modeling/ChairImagesLegOffset"
-source_path = "/media/lei/TOU/2019SpringTerm/GeometricModelling/Project/Data/negative-chairs/ChairImagesBackOffset2"
+source_path = "/Users/trailingend/Documents/SFU/CMPT764/chair-modeling/ChairImagesLegOffset"
 
 for root, dirs, files in os.walk(source_path):
     for file in files:
