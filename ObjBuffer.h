@@ -99,6 +99,8 @@ struct ChairPartBuffer : ObjBuffer {
 	static ChairPartBuffer fromSeat(ObjBuffer& seat);
 	static ChairPartBuffer fromPart(ObjBuffer& part, ChairPartBuffer& seat);
 	void resetPartFeatures();
+	Vector3f getTransformed(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v);
+	void transformSingle(Vector3f pb, Vector3f p0, Vector3f p1);
 	Vector3f getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v);
 	void transformSingleXSym(Vector3f pb, Vector3f p0, Vector3f p1);
 	void transformDouleXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1);

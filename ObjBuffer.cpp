@@ -355,6 +355,21 @@ void ChairPartBuffer::resetPartFeatures() {
 	}
 }
 
+Vector3f ChairPartBuffer::getTransformed(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v) {
+	Vector3f offsetbase = p1 - p0;
+	float v1x = v.x() + offsetbase.x();
+	float v1y = v.y() + offsetbase.y();
+	float scaleZ = (p1.z() - pb.z()) / (p0.z() - pb.z());
+	float v1z = (v.z() - pb.z()) * scaleZ  + pb.z();
+	return Vector3f(v1x, v1y, v1z);
+}
+
+void ChairPartBuffer::transformSingle(Vector3f pb, Vector3f p0, Vector3f p1) {
+	for (int i = 0; i < nVertices; i++) {
+		vertices[i] = getTransformed(pb, p0, p1, vertices[i]);
+	}
+}
+
 Vector3f ChairPartBuffer::getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v) {
 	Vector3f offsetbase = p1 - p0;
 	float v1x = v.x() + (pb.x() - v.x()) / (pb.x() - p0.x()) * offsetbase.x();
@@ -386,11 +401,6 @@ void ChairPartBuffer::align(Vector3f p_target) {
 	Vector3f pb(bound.getCenter().x(), bound.getCenter().y(), bound.getCenter().z());
 	float offsetX = p_target.x() - pb.x();
 	float offsetY = p_target.y() - pb.y();
-	// cout << "seatX " << p_target.x() << " seatY " << p_target.y() << endl;
-	// cout << "pb " << pb.x() << " pb " << pb.y() << endl;
-	// cout << "offsetX " << offsetX << " offsetY " << offsetY << endl;
-	// cout << "before " << vertices[0].x() << endl;
-	// cout << "after" << vertices[0].x() + offsetX << endl;
 	for (int i = 0; i < nVertices; i++) {
 		vertices[i].x() += offsetX;
 		vertices[i].y() += offsetY;
