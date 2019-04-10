@@ -108,10 +108,12 @@ struct ChairPartBuffer : ObjBuffer {
 	static ChairPartBuffer fromSeat(ObjBuffer& seat);
 	static ChairPartBuffer fromPart(ObjBuffer& part, ChairPartBuffer& seat);
 	void resetPartFeatures();
-	Matrix3f getScaleMatrix(Vector3f pb, Vector3f p0, Vector3f p1);
-	void singleScale(Vector3f pb, Vector3f p0, Vector3f p1);
-	// Inputs: p0.y() > q0.y()
-	void doubleScale(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1);
+	Vector3f getTransformed(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v);
+	void transformSingle(Vector3f pb, Vector3f p0, Vector3f p1);
+	Vector3f getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v, bool whetherScaleZ = true);
+	void transformSingleXSym(Vector3f pb, Vector3f p0, Vector3f p1);
+	void transformDouleXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1, bool whetherScaleZ = true);
+	void align(Vector3f p_target);
 private:
 	Vector3f getFeature(float x, float y, float z);
 };

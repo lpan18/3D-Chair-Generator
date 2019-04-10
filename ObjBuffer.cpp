@@ -5,10 +5,6 @@
 #include <sstream>
 #include "ObjBuffer.h"
 
-float clamp(float x, float low, float high)
-{
-    return min(high, max(x, low));
-}
 
 // Read Obj file to ObjBuffer
 ObjBuffer ObjBuffer::readObjFile(string filename) {
@@ -192,123 +188,36 @@ void ObjBuffer::resetBound() {
 	bound.minZ = minZ;
 }
 
-// TO DO
-// Temporary implementation.
-// To be updated to http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.104.4264&rep=rep1&type=pdf
+float getDist(Vector3f vt, Vector3f p){
+	Vector3f dvt = vt - p;
+	return dvt.x() * dvt.x() + dvt.y() * dvt.y() + dvt.z() * dvt.z();
+}
+
+// get closest point(compared to vertices and center of face) to p
 Vector3f ObjBuffer::getClosestPointTo(Vector3f p) {
 	float minDistQuad = MAXVALUE;
 	Vector3f pc;
-	for (int i = 0; i < mFaces; i++) {
-		Vector3f p1 = getClosesPoint(faces[i], p);
-		Vector3f p1p = p - p1;
-		float distQuad = p1p.x() * p1p.x() + p1p.y() * p1p.y() + p1p.z() * p1p.z();
+	for (int i = 0; i < nVertices; i++) {
+		float distQuad = getDist(vertices[i], p);
 		if (distQuad < minDistQuad) {
-			pc = p1;
+			minDistQuad = distQuad;
+			pc = vertices[i];
 		}
 	}
 
+	for (int i = 0; i < mFaces; i++) {
+		Vector3i f = faces[i];
+		Vector3f vt0 = vertices[f[0] - 1];
+		Vector3f vt1 = vertices[f[1] - 1];
+		Vector3f vt2 = vertices[f[2] - 1];	
+		Vector3f vt_center = (vt0 + vt1 + vt2) / 3.0f;			
+		float dist_center = getDist(vt_center, p);
+		if (dist_center < minDistQuad) {
+			minDistQuad = dist_center;
+			pc = vt_center;
+		}
+	}
 	return pc;
-}
-
-Vector3f ObjBuffer::getClosesPoint(Vector3i f, Vector3f p)
-{
-	Vector3f vt0 = vertices[f[0] - 1];
-	Vector3f vt1 = vertices[f[1] - 1];
-	Vector3f vt2 = vertices[f[2] - 1];
-
-    Vector3f edge0 = vt1 - vt0;
-    Vector3f edge1 = vt2 - vt0;
-    Vector3f v0 = vt0 - p;
-
-    float a = edge0.dot( edge0 );
-    float b = edge0.dot( edge1 );
-    float c = edge1.dot( edge1 );
-    float d = edge0.dot( v0 );
-    float e = edge1.dot( v0 );
-
-    float det = a*c - b*b;
-    float s = b*e - c*d;
-    float t = b*d - a*e;
-
-    if ( s + t < det )
-    {
-        if ( s < 0.f )
-        {
-            if ( t < 0.f )
-            {
-                if ( d < 0.f )
-                {
-                    s = clamp( -d/a, 0.f, 1.f );
-                    t = 0.f;
-                }
-                else
-                {
-                    s = 0.f;
-                    t = clamp( -e/c, 0.f, 1.f );
-                }
-            }
-            else
-            {
-                s = 0.f;
-                t = clamp( -e/c, 0.f, 1.f );
-            }
-        }
-        else if ( t < 0.f )
-        {
-            s = clamp( -d/a, 0.f, 1.f );
-            t = 0.f;
-        }
-        else
-        {
-            float invDet = 1.f / det;
-            s *= invDet;
-            t *= invDet;
-        }
-    }
-    else
-    {
-        if ( s < 0.f )
-        {
-            float tmp0 = b+d;
-            float tmp1 = c+e;
-            if ( tmp1 > tmp0 )
-            {
-                float numer = tmp1 - tmp0;
-                float denom = a-2*b+c;
-                s = clamp( numer/denom, 0.f, 1.f );
-                t = 1-s;
-            }
-            else
-            {
-                t = clamp( -e/c, 0.f, 1.f );
-                s = 0.f;
-            }
-        }
-        else if ( t < 0.f )
-        {
-            if ( a+d > b+e )
-            {
-                float numer = c+e-b-d;
-                float denom = a-2*b+c;
-                s = clamp( numer/denom, 0.f, 1.f );
-                t = 1-s;
-            }
-            else
-            {
-                s = clamp( -e/c, 0.f, 1.f );
-                t = 0.f;
-            }
-        }
-        else
-        {
-            float numer = c+e-b-d;
-            float denom = a-2*b+c;
-            s = clamp( numer/denom, 0.f, 1.f );
-            t = 1.f - s;
-        }
-    }
-
-    return vt0 + s * edge0 + t * edge1;
 }
 
 ChairPartOrigSeatFeatures ChairPartOrigSeatFeatures::fromSeat(ObjBuffer& seat) {
@@ -400,61 +309,55 @@ void ChairPartBuffer::resetPartFeatures() {
 	}
 }
 
-Matrix3f ChairPartBuffer::getScaleMatrix(Vector3f pb, Vector3f p0, Vector3f p1) {
-	Vector3f v_b0 = p0 - pb;
-	Vector3f v_b1 = p1 - pb;
-
-	float x0 = v_b0.x();
-	float y0 = v_b0.y();
-	float z0 = v_b0.z();
-	float x1 = v_b1.x();
-	float y1 = v_b1.y();
-	float z1 = v_b1.z();
-
-    float sX = abs(x0) > EPSILON && abs(x1) > EPSILON ? x1 / x0 : 1;
-    float sY = abs(y0) > EPSILON && abs(y1) > EPSILON ? y1 / y0 : 1;
-    float sZ = abs(z0) > EPSILON && abs(z1) > EPSILON ? z1 / z0 : 1;
-
-	Matrix3f scale;
-	scale << sX, 0, 0,
-	        0, sY, 0,
-			0, 0, sZ;
-
-	return scale;
+Vector3f ChairPartBuffer::getTransformed(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v) {
+	Vector3f offsetbase = p1 - p0;
+	float v1x = v.x() + offsetbase.x();
+	float v1y = v.y() + offsetbase.y();
+	float scaleZ = (p1.z() - pb.z()) / (p0.z() - pb.z());
+	float v1z = (v.z() - pb.z()) * scaleZ  + pb.z();
+	return Vector3f(v1x, v1y, v1z);
 }
 
-void ChairPartBuffer::singleScale(Vector3f pb, Vector3f p0, Vector3f p1) {
-	Matrix3f scale = getScaleMatrix(pb, p0, p1);
+void ChairPartBuffer::transformSingle(Vector3f pb, Vector3f p0, Vector3f p1) {
 	for (int i = 0; i < nVertices; i++) {
-		vertices[i] = scale * (vertices[i] - pb) + pb;
+		vertices[i] = getTransformed(pb, p0, p1, vertices[i]);
 	}
 }
 
-void ChairPartBuffer::doubleScale(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1) {
-	Matrix3f scaleP = getScaleMatrix(pb, p0, p1);
-	Matrix3f scaleQ = getScaleMatrix(pb, q0, q1);
-	// Weight of P
-	float wp;
-	// Weight of Q
-	float wq;
-	// Vertex with P transformation
-	Vector3f vp;
-	// Vertex with Q transformation
-	Vector3f vq;
+Vector3f ChairPartBuffer::getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v, bool whetherScaleZ) {
+	Vector3f offsetbase = p1 - p0;
+	float v1x = v.x() + (pb.x() - v.x()) / (pb.x() - p0.x()) * offsetbase.x();
+	float v1y = v.y() + offsetbase.y();
+	float scaleZ = whetherScaleZ ? ((p1.z() - pb.z()) / (p0.z() - pb.z())) : 1;
+	float v1z = (v.z() - pb.z()) * scaleZ  + pb.z();
+	return Vector3f(v1x, v1y, v1z);
+}
+
+void ChairPartBuffer::transformSingleXSym(Vector3f pb, Vector3f p0, Vector3f p1) {
 	for (int i = 0; i < nVertices; i++) {
-		if (vertices[i].y() > p0.y()) {
-			wp = 1;
-			wq = 0;
-		} else if (vertices[i].y() < q0.y()) {
-			wp = 0;
-			wq = 1;
-		} else {
-			wp = (p0.y() - vertices[i].y()) / (p0.y() - q0.y());
-			wq = 1 - wp;
-		}
-		vp = scaleP * (vertices[i] - pb) + pb;
-		vq = scaleQ * (vertices[i] - pb) + pb;
-		vertices[i] = wp * vp + wq * vq; 
+		vertices[i] = getTransformedXSym(pb, p0, p1, vertices[i]);
+	}
+}
+
+void ChairPartBuffer::transformDouleXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1, bool whetherScaleZ) {
+	for (int i = 0; i < nVertices; i++) {
+		Vector3f vp = getTransformedXSym(pb, p0, p1, vertices[i], whetherScaleZ);
+		Vector3f vq = getTransformedXSym(pb, q0, q1, vertices[i], whetherScaleZ);
+		float wp = vertices[i].y() > p0.y() ? 1.0f :
+		            vertices[i].y() < q0.y() ? 0.0f :
+					(vertices[i].y() - q0.y()) / (p0.y() - q0.y());
+					
+		vertices[i] = vp * wp + vq * (1.0f - wp);
+	}
+}
+
+void ChairPartBuffer::align(Vector3f p_target) {
+	Vector3f pb(bound.getCenter().x(), bound.getCenter().y(), bound.getCenter().z());
+	float offsetX = p_target.x() - pb.x();
+	float offsetY = p_target.y() - pb.y();
+	for (int i = 0; i < nVertices; i++) {
+		vertices[i].x() += offsetX;
+		vertices[i].y() += offsetY;
 	}
 }
 
