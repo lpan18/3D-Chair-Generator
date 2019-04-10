@@ -101,9 +101,9 @@ struct ChairPartBuffer : ObjBuffer {
 	void resetPartFeatures();
 	Vector3f getTransformed(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v);
 	void transformSingle(Vector3f pb, Vector3f p0, Vector3f p1);
-	Vector3f getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v);
+	Vector3f getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v, bool whetherScaleZ = true);
 	void transformSingleXSym(Vector3f pb, Vector3f p0, Vector3f p1);
-	void transformDouleXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1);
+	void transformDouleXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1, bool whetherScaleZ = true);
 	void align(Vector3f p_target);
 private:
 	Vector3f getFeature(float x, float y, float z);

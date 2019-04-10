@@ -370,11 +370,11 @@ void ChairPartBuffer::transformSingle(Vector3f pb, Vector3f p0, Vector3f p1) {
 	}
 }
 
-Vector3f ChairPartBuffer::getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v) {
+Vector3f ChairPartBuffer::getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v, bool whetherScaleZ) {
 	Vector3f offsetbase = p1 - p0;
 	float v1x = v.x() + (pb.x() - v.x()) / (pb.x() - p0.x()) * offsetbase.x();
 	float v1y = v.y() + offsetbase.y();
-	float scaleZ = (p1.z() - pb.z()) / (p0.z() - pb.z());
+	float scaleZ = whetherScaleZ ? ((p1.z() - pb.z()) / (p0.z() - pb.z())) : 1;
 	float v1z = (v.z() - pb.z()) * scaleZ  + pb.z();
 	return Vector3f(v1x, v1y, v1z);
 }
@@ -385,10 +385,10 @@ void ChairPartBuffer::transformSingleXSym(Vector3f pb, Vector3f p0, Vector3f p1)
 	}
 }
 
-void ChairPartBuffer::transformDouleXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1) {
+void ChairPartBuffer::transformDouleXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1, bool whetherScaleZ) {
 	for (int i = 0; i < nVertices; i++) {
-		Vector3f vp = getTransformedXSym(pb, p0, p1, vertices[i]);
-		Vector3f vq = getTransformedXSym(pb, q0, q1, vertices[i]);
+		Vector3f vp = getTransformedXSym(pb, p0, p1, vertices[i], whetherScaleZ);
+		Vector3f vq = getTransformedXSym(pb, q0, q1, vertices[i], whetherScaleZ);
 		float wp = vertices[i].y() > p0.y() ? 1.0f :
 		            vertices[i].y() < q0.y() ? 0.0f :
 					(vertices[i].y() - q0.y()) / (p0.y() - q0.y());

@@ -28,6 +28,6 @@ public:
 private:
     void transformLeg(ChairPartBuffer& seat, ChairPartBuffer& leg);
     void transformBack(ChairPartBuffer& seat, ChairPartBuffer& back);
-    void transformArm(ChairPartBuffer& seat, ChairPartBuffer& arm);
+    void transformArm(ChairPartBuffer& seat, ChairPartBuffer& back, ChairPartBuffer& arm);
 };
 #endif // CHAIRMIXER_H
