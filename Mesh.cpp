@@ -30,9 +30,9 @@ bool sortByStartVertexThenByEndVertex(const W_edge* edge1, const W_edge* edge2) 
 MatrixXf Mesh::getPositions() {
 	MatrixXf positions = MatrixXf(3, mFaces * 9);
 	for (int i = 0; i < mFaces; i++) {
-		positions.col(i * 3) << (faces[i].edge->end->p - center) * scale;
-		positions.col(i * 3 + 1) << (faces[i].edge->start->p - center) * scale;
-		positions.col(i * 3 + 2) << (faces[i].edge->right_prev->start->p - center) * scale;
+		positions.col(i * 3) << faces[i].edge->end->p;
+		positions.col(i * 3 + 1) << faces[i].edge->start->p;
+		positions.col(i * 3 + 2) << faces[i].edge->right_prev->start->p;
 
 		positions.col(mFaces * 3 + i * 6) << positions.col(i * 3) * 1.005;
 		positions.col(mFaces * 3 + i * 6 + 1) << positions.col(i * 3 + 1) * 1.005;
@@ -121,9 +121,10 @@ void Mesh::readObjBuffer(ObjBuffer buffer) {
 
 	center = buffer.bound.getCenter();
 	scale = buffer.bound.getScale();
+	float abs_scale = buffer.bound.getAbsScale();
 
 	for (int vertexi = 0; vertexi < nVertices; vertexi++) {
-		vertices[vertexi].p = buffer.vertices[vertexi];
+		vertices[vertexi].p = (buffer.vertices[vertexi] - center) * abs_scale;
 	}
 
 	int w_edgei = 0;

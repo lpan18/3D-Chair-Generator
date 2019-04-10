@@ -382,9 +382,8 @@ public:
                 if (system("/opt/anaconda3/bin/python test.py") == 0) {
                     cout << "Successfully scored chairs" << endl; 
                 } else {
-                    cout << "Error scoring chair" << endl; 
+                    cout << "Error scoring chairs" << endl; 
                 }
-                
             } else {
                 cout << "Error creating depth map" << endl; 
             }

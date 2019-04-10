@@ -32,6 +32,15 @@ struct ObjBound {
 	    float scale = 1.0f / maxOffset.maxCoeff();
 		return scale;
 	}
+
+	float getAbsScale() {
+		float distX = maxX - minX;
+		float distY = maxY - minY;
+		float distZ = maxZ - minZ;
+		float maxVal = std::sqrt(distX * distX + distY * distY + distZ * distZ);
+	    float scale = 1.0f / maxVal;
+		return scale;
+	}
 };
 
 struct ObjGroup {
