@@ -355,35 +355,6 @@ void ChairPartBuffer::resetPartFeatures() {
 	}
 }
 
-Matrix3f ChairPartBuffer::getScaleMatrix(Vector3f pb, Vector3f p0, Vector3f p1) {
-	Vector3f v_b0 = p0 - pb;
-	Vector3f v_b1 = p1 - pb;
-
-	float x0 = v_b0.x();
-	float y0 = v_b0.y();
-	float z0 = v_b0.z();
-	float x1 = v_b1.x();
-	float y1 = v_b1.y();
-	float z1 = v_b1.z();
-
-    float sX = abs(x0) > EPSILON && abs(x1) > EPSILON ? x1 / x0 : 1;
-    float sY = abs(y0) > EPSILON && abs(y1) > EPSILON ? y1 / y0 : 1;
-    float sZ = abs(z0) > EPSILON && abs(z1) > EPSILON ? z1 / z0 : 1;
-
-	Matrix3f scale;
-	scale << sX, 0, 0,
-	        0, sY, 0,
-			0, 0, sZ;
-	return scale;
-}
-
-void ChairPartBuffer::singleScale(Vector3f pb, Vector3f p0, Vector3f p1) {
-	Matrix3f scale = getScaleMatrix(pb, p0, p1);
-	for (int i = 0; i < nVertices; i++) {
-		vertices[i] = scale * (vertices[i] - pb) + pb;
-	}
-}
-
 Vector3f ChairPartBuffer::getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v) {
 	Vector3f offsetbase = p1 - p0;
 	float v1x = v.x() + (pb.x() - v.x()) / (pb.x() - p0.x()) * offsetbase.x();
@@ -423,40 +394,6 @@ void ChairPartBuffer::align(Vector3f p_target) {
 	for (int i = 0; i < nVertices; i++) {
 		vertices[i].x() += offsetX;
 		vertices[i].y() += offsetY;
-	}
-}
-
-void ChairPartBuffer::doubleScale(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1) {
-	Matrix3f scaleP = getScaleMatrix(pb, p0, p1);
-	Matrix3f scaleQ = getScaleMatrix(pb, q0, q1);
-	// Weight of P
-	float wp;
-	// Weight of Q
-	float wq;
-	// Vertex with P transformation
-	Vector3f vp;
-	// Vertex with Q transformation
-	Vector3f vq;
-	for (int i = 0; i < nVertices; i++) {
-		// if (vertices[i].y() > p0.y()) {
-		// 	wp = 1;
-		// 	wq = 0;
-		// } else if (vertices[i].y() < q0.y()) {
-		// 	wp = 0;
-		// 	wq = 1;
-		// } else {
-		// 	wp = (p0.y() - vertices[i].y()) / (p0.y() - q0.y());
-		// 	wq = 1 - wp;
-		// }
-
-		// temp
-		wp = 0;
-		wq = 1;
-		// temp
-
-		vp = scaleP * (vertices[i] - pb) + pb;
-		vq = scaleQ * (vertices[i] - pb) + pb;
-		vertices[i] = wp * vp + wq * vq;
 	}
 }
 
