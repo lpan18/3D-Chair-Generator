@@ -56,7 +56,7 @@ def generate(filepath, index, view, target_path):
     print("name of cam", camera_obj.name)
     if view == 'front':
         camera_obj.location.x = 0.0
-        camera_obj.location.y = 0.0 #-0.5
+        camera_obj.location.y = 0.0 #-0.5  
         camera_obj.location.z = -2.5#3.5
         camera_obj.rotation_euler.x = 0.0
         camera_obj.rotation_euler.y = math.pi
