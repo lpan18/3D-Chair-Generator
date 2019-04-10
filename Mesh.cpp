@@ -109,6 +109,56 @@ void Mesh::writeObj(string fileName) {
 	}
 }
 
+// Write mesh to an obj file
+void Mesh::writeObjFromMesh(string fileName) {
+	float maxX = 0, maxY = 0, maxZ =0;
+	float minX = 0, minY = 0, minZ = 0;
+	float sumX = 0, sumY = 0, sumZ = 0;
+	float avgX = 0, avgY = 0, avgZ = 0;
+
+	for (int i = 0; i < nVertices; i++) {
+		maxX = vertices[i].p.x() > maxX ? vertices[i].p.x() : maxX;
+		maxY = vertices[i].p.y() > maxY ? vertices[i].p.y() : maxY;
+		maxZ = vertices[i].p.z() > maxZ ? vertices[i].p.z() : maxZ;
+		minX = vertices[i].p.x() < minX ? vertices[i].p.x() : minX;
+		minY = vertices[i].p.y() < minY ? vertices[i].p.y() : minY;
+		minZ = vertices[i].p.z() < minZ ? vertices[i].p.z() : minZ;
+		sumX = vertices[i].p.x();
+		sumY = vertices[i].p.y();
+		sumZ = vertices[i].p.z();
+	}
+
+	float distX = maxX - minX;
+	float distY = maxY - minY;
+	float distZ = maxZ - minZ;
+	avgX = sumX / float(nVertices);
+	avgY = sumY / float(nVertices);
+	avgZ = sumZ / float(nVertices);
+	float scale = maxX - minX;
+	if ((maxY - minY) > scale) scale = (maxY - minY);
+	if ((maxZ - minZ) > scale) scale = (maxZ - minZ);
+	scale = scale;
+
+	stringstream ss;
+	ss << "# " << nVertices << " " << mFaces << endl;
+	for (int i = 0; i < nVertices; i++) {
+		float currX = (vertices[i].p.x() - avgX) / scale;
+		float currY = (vertices[i].p.y() - avgY) / scale;
+		float currZ = (vertices[i].p.z() - avgZ) / scale;
+		ss << "v " << currX << " " << currY << " " << currZ << endl;
+	}
+	for (int i = 0; i < mFaces; i++) {
+		ss << "f " << faces[i].edge->end - vertices + 1 << " " << faces[i].edge->start - vertices + 1 << " " << faces[i].edge->right_prev->start - vertices + 1 << endl;
+	}
+
+	ofstream outputFile(fileName);
+	if (outputFile.is_open())
+	{
+		outputFile << ss.str();
+		outputFile.close();
+	}
+}
+
 // Read obj buffer
 void Mesh::readObjBuffer(ObjBuffer buffer) {
 	nVertices = buffer.nVertices;

@@ -148,12 +148,13 @@ public:
     }
 
     // Temp test method
-    void tempTest() {
+    void tempTest(string fileName) {
         ObjBuffer mixed = mMixer.tempTest();
 
         delete mMesh;
         mMesh = new Mesh(mixed);
-        
+        mMesh->writeObjFromMesh(fileName);
+
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);
         smoothNormals = mMesh->getSmoothNormals(&normals);
@@ -346,7 +347,7 @@ public:
             // cout << entry.path() << endl;
             // n++;
         // }
-        if(n < 5) n = 5; // generate 5 objs in one test
+        if(n < 10) n = 10; // generate 5 objs in one test
         for(size_t i = 0; i < n; i++){
             Button *obj = new Button(widgets, "chair " + to_string(i) + ".obj");
             obj->setVisible(false);  
@@ -359,8 +360,8 @@ public:
             for(size_t idx = 0; idx < n; idx++)
             {  
                 string objname = folder + "/"  + to_string(idx) + ".obj";
-                mCanvas->tempTest();
-                mCanvas->writeObj(objname);
+                mCanvas->tempTest(objname);
+                // mCanvas->writeObj(objname);
 
                 chairslabel->setVisible(true);
                 scorelabel->setVisible(true);
