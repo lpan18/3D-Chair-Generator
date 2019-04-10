@@ -63,7 +63,7 @@ def generate(filepath, index, view, target_path):
         camera_obj.rotation_euler.z = math.pi
     elif view == 'top':
         camera_obj.location.x = 0.0
-        camera_obj.location.y = -4.5
+        camera_obj.location.y = -4.0
         camera_obj.location.z = 0.0 #-0.05
         camera_obj.rotation_euler.x = - math.pi / 2
         camera_obj.rotation_euler.y = math.pi
@@ -71,7 +71,7 @@ def generate(filepath, index, view, target_path):
     elif view == 'side':
         camera_obj.location.x = -4.0
         camera_obj.location.y = 0.0 #-0.3
-        camera_obj.location.z = 0
+        camera_obj.location.z = 0.0
         camera_obj.rotation_euler.x = 0
         camera_obj.rotation_euler.y = math.pi / 2
         camera_obj.rotation_euler.z = math.pi
@@ -93,8 +93,8 @@ def generate(filepath, index, view, target_path):
     render_layer = nodes.new(type="CompositorNodeRLayers") # type = 'R_LAYERS'
     composite_layer = nodes.new(type="CompositorNodeComposite") # type = 'COMPOSITE'
     map_range = nodes.new(type="CompositorNodeMapRange") # type ='MAP_RANGE'
-    map_range.inputs[1].default_value = 3.5
-    map_range.inputs[2].default_value = 7.0
+    map_range.inputs[1].default_value = 3.6
+    map_range.inputs[2].default_value = 6.0
 
     # link nodes
     links = scene.node_tree.links
