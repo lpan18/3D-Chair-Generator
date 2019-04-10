@@ -17,6 +17,14 @@ def delete_all_mesh():
             o.select = False
     bpy.ops.object.delete()
 
+def select_all_mesh():
+    for ob in bpy.context.scene.objects:
+        if ob.type == 'MESH':
+            ob.select = True
+            bpy.context.scene.objects.active = ob
+        else:
+            ob.select = False
+
 def find_camera():
     for o in bpy.data.objects:
         if o.type == 'CAMERA':
@@ -31,6 +39,11 @@ def generate(filepath, index, view, target_path):
     file_path = filepath
     chair_objs = bpy.ops.import_scene.obj(filepath = file_path)
 
+    # move to center
+    select_all_mesh()
+    bpy.ops.object.join()
+    bpy.ops.object.origin_set(type='GEOMETRY_ORIGIN', center='MEDIAN')
+
     # camera loc - front view
     camera_obj = find_camera()
     if camera_obj is None:
@@ -43,7 +56,7 @@ def generate(filepath, index, view, target_path):
     print("name of cam", camera_obj.name)
     if view == 'front':
         camera_obj.location.x = 0.0
-        camera_obj.location.y = -0.5
+        camera_obj.location.y = 0.0 #-0.5
         camera_obj.location.z = -4.0
         camera_obj.rotation_euler.x = 0.0
         camera_obj.rotation_euler.y = math.pi
@@ -51,13 +64,13 @@ def generate(filepath, index, view, target_path):
     elif view == 'top':
         camera_obj.location.x = 0.0
         camera_obj.location.y = -4.5
-        camera_obj.location.z = -0.05
+        camera_obj.location.z = 0.0 #-0.05
         camera_obj.rotation_euler.x = - math.pi / 2
         camera_obj.rotation_euler.y = math.pi
         camera_obj.rotation_euler.z = math.pi
     elif view == 'side':
         camera_obj.location.x = -4.0
-        camera_obj.location.y = -0.3
+        camera_obj.location.y = 0.0 #-0.3
         camera_obj.location.z = 0
         camera_obj.rotation_euler.x = 0
         camera_obj.rotation_euler.y = math.pi / 2
