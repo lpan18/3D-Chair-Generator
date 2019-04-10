@@ -99,9 +99,9 @@ struct ChairPartBuffer : ObjBuffer {
 	static ChairPartBuffer fromSeat(ObjBuffer& seat);
 	static ChairPartBuffer fromPart(ObjBuffer& part, ChairPartBuffer& seat);
 	void resetPartFeatures();
-		Vector3f getTranslated(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v);
-	void singleTranslation(Vector3f pb, Vector3f p0, Vector3f p1);
-	void doubleTranslation(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1);
+	Vector3f getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v);
+	void transformSingleXSym(Vector3f pb, Vector3f p0, Vector3f p1);
+	void transformDouleXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1);
 	Matrix3f getScaleMatrix(Vector3f pb, Vector3f p0, Vector3f p1);
 	void singleScale(Vector3f pb, Vector3f p0, Vector3f p1);
 	// Inputs: p0.y() > q0.y()

@@ -384,23 +384,25 @@ void ChairPartBuffer::singleScale(Vector3f pb, Vector3f p0, Vector3f p1) {
 	}
 }
 
-Vector3f ChairPartBuffer::getTranslated(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v) {
+Vector3f ChairPartBuffer::getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v) {
 	Vector3f offsetbase = p1 - p0;
-	Vector3f offsetv;
-	offsetv << (pb.x() - v.x()) / (pb.x() - p0.x()) * offsetbase.x(), offsetbase.y(), offsetbase.z();
-	return v + offsetv;
+	float v1x = v.x() + (pb.x() - v.x()) / (pb.x() - p0.x()) * offsetbase.x();
+	float v1y = v.y() + offsetbase.y();
+	float scaleZ = (p1.z() - pb.z()) / (p0.z() - pb.z());
+	float v1z = (v.z() - pb.z()) * scaleZ  + pb.z();
+	return Vector3f(v1x, v1y, v1z);
 }
 
-void ChairPartBuffer::singleTranslation(Vector3f pb, Vector3f p0, Vector3f p1) {
+void ChairPartBuffer::transformSingleXSym(Vector3f pb, Vector3f p0, Vector3f p1) {
 	for (int i = 0; i < nVertices; i++) {
-		vertices[i] = getTranslated(pb, p0, p1, vertices[i]);
+		vertices[i] = getTransformedXSym(pb, p0, p1, vertices[i]);
 	}
 }
 
-void ChairPartBuffer::doubleTranslation(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1) {
+void ChairPartBuffer::transformDouleXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1) {
 	for (int i = 0; i < nVertices; i++) {
-		Vector3f vp = getTranslated(pb, p0, p1, vertices[i]);
-		Vector3f vq = getTranslated(pb, q0, q1, vertices[i]);
+		Vector3f vp = getTransformedXSym(pb, p0, p1, vertices[i]);
+		Vector3f vq = getTransformedXSym(pb, q0, q1, vertices[i]);
 		float wp = vertices[i].y() > p0.y() ? 1.0f :
 		            vertices[i].y() < q0.y() ? 0.0f :
 					(vertices[i].y() - q0.y()) / (p0.y() - q0.y());
