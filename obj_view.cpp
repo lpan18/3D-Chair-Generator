@@ -163,8 +163,8 @@ public:
     }
 
     // Initialize method
-    void initialize(string fileName, int level, int idx) {
-        ObjBuffer mixed = mMixer.initialize(level, idx);
+    void initialize(string fileName, int idx) {
+        ObjBuffer mixed = mMixer.initialize(idx);
 
         delete mMesh;
         mMesh = new Mesh(mixed);
@@ -177,8 +177,8 @@ public:
     }
 
     // Evolve method
-    void evolve(string fileName, int level, int idx) {
-        ObjBuffer mixed = mMixer.evolve(level, idx);
+    void evolve(string fileName, int level, int idx, vector<int> selected_idx) {
+        ObjBuffer mixed = mMixer.evolve(level, idx, selected_idx);
 
         delete mMesh;
         mMesh = new Mesh(mixed);
@@ -399,7 +399,6 @@ public:
             {  
                 string objname = folder + "/"  + to_string(idx) + ".obj";
                 mCanvas->tempTest(objname);
-                // mCanvas->evolve(objname, 0, idx);
                 // mCanvas->writeObj(objname);
 
                 chairslabel->setVisible(true);
@@ -442,20 +441,92 @@ public:
 
 
         // call back function for testBtn 
-        initBtn->setCallback([this,objs,chairslabel,scorelabel,n_to_show,folder]() {
+        // initBtn->setCallback([this, objs, chairslabel, scorelabel, n_to_show, &selected_idx, folder]() {
+        initBtn->setCallback([&, objs, chairslabel, scorelabel, n_to_show, folder]() {
             // bool wasVisible = objs[0]->visible();
+            if (system("exec rm -r ./Completion/*") == 0) {
+                cout << "Successfully emptied Completion" << endl; 
+            } else {
+                cout << "Error emptying Completion" << endl; 
+            }
+
             int n_to_make = mCanvas->mMixer.chairs.size();
 
             for(size_t idx = 0; idx < n_to_make; idx++)
             {  
                 string objname = folder + "/init-"  + to_string(idx) + ".obj";
-                mCanvas->initialize(objname, 0, idx);
+                mCanvas->initialize(objname, idx);
 
                 chairslabel->setVisible(true);
                 scorelabel->setVisible(true);
                 if (idx < n_to_show) {
                     objs[idx]->setVisible(true);
                 }
+            }
+
+            // if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
+            //     cout << "Successfully created depth map" << endl; 
+            //     // if(system("/usr/bin/python3 test.py ") == 0){
+            //     if (system("/opt/anaconda3/bin/python test.py") == 0) {
+            //         cout << "Successfully scored chairs" << endl; 
+            //     } else {
+            //         cout << "Error scoring chairs" << endl; 
+            //     }
+            // } else {
+            //     cout << "Error creating depth map" << endl; 
+            // }
+
+            // get scores
+            vector<float> scores; 
+            ifstream file;
+            file.open("score.txt");
+            if (!file) {
+                cout << "Unable to open file";
+                exit(1); 
+            }
+            string line;
+            while (getline(file, line)) {
+                scores.push_back(strtof((line).c_str(),0));
+            }
+            file.close();
+            
+            // sort scores
+            vector<int> scores_idx(scores.size());
+            iota(scores_idx.begin(), scores_idx.end(), 0);
+            sort(scores_idx.begin(), scores_idx.end(),
+            [&scores](int i1, int i2) {return scores[i1] > scores[i2];});
+
+            selected_idx.clear();
+            for (size_t idx = 0; idx < n_to_show; idx++) {
+                int which_score = scores_idx[idx];
+                    cout << selected_idx.size() << endl;
+                float curr_score = scores[which_score];
+                selected_idx.push_back(which_score);
+
+                string objname = folder + "/init-"  + to_string(which_score) + ".obj";
+                objs[idx]->setCallback([this, objname, scorelabel, curr_score] {
+                    ObjViewApp::fileName = objname;
+                    mCanvas->loadObj(fileName);
+                    scorelabel->setCaption("Score:  " + to_string(curr_score));
+                });
+            }
+
+            performLayout();           
+        }); 
+
+        // call back function for leg  
+        legBtn->setCallback([&, objs, chairslabel, scorelabel, n_to_show, folder]() {
+            if (system("exec rm -r ./Completion/*") == 0) {
+                cout << "Successfully emptied Completion" << endl; 
+            } else {
+                cout << "Error emptying Completion" << endl; 
+            }
+
+            int n_to_make = mCanvas->mMixer.chairs.size() * n_to_show;
+
+            for(size_t idx = 0; idx < n_to_make; idx++) {  
+                string objname = folder + "/leg-"  + to_string(idx) + ".obj";
+                mCanvas->evolve(objname, 1, idx, selected_idx);
             }
 
             if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
@@ -483,21 +554,20 @@ public:
                 scores.push_back(strtof((line).c_str(),0));
             }
             file.close();
-            
+
             // sort scores
             vector<int> scores_idx(scores.size());
             iota(scores_idx.begin(), scores_idx.end(), 0);
             sort(scores_idx.begin(), scores_idx.end(),
             [&scores](int i1, int i2) {return scores[i1] > scores[i2];});
-            
-            // for (auto i: scores_idx) {
-            //     cout << scores[i] << " - ";
-            // }
-            // cout << endl;
 
+            selected_idx.clear();
             for (size_t idx = 0; idx < n_to_show; idx++) {
                 int which_score = scores_idx[idx];
+                    cout << selected_idx.size() << endl;
                 float curr_score = scores[which_score];
+                selected_idx.push_back(which_score);
+
                 string objname = folder + "/init-"  + to_string(which_score) + ".obj";
                 objs[idx]->setCallback([this, objname, scorelabel, curr_score] {
                     ObjViewApp::fileName = objname;
@@ -506,26 +576,8 @@ public:
                 });
             }
 
-            performLayout();           
+            performLayout();
         }); 
-
-        // // call back function for leg  
-        // legBtn->setCallback([this,objs,chairslabel,scorelabel,n_to_show,folder]() {
-        //     // bool wasVisible = objs[0]->visible();
-        //     int n_to_make = 10;
-
-        //     for(size_t idx = 0; idx < n_to_make; idx++)
-        //     {  
-        //         string objname = folder + "/init-"  + to_string(idx) + ".obj";
-        //         mCanvas->evolve(objname, 0, idx);
-
-        //         chairslabel->setVisible(true);
-        //         scorelabel->setVisible(true);
-        //         if (idx < n_to_show) {
-        //             objs[idx]->setVisible(true);
-        //         }
-        //     }
-        // }
 
 
         
@@ -566,6 +618,7 @@ public:
 
 private:
     MyGLCanvas *mCanvas;
+    vector<int> selected_idx;
     string fileName;
 };
 

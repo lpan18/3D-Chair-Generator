@@ -12,7 +12,6 @@ class ChairMixer {
 public:
     vector<ChairBuffer> chairs;
     MatrixXi record;
-    vector<int> seeds;
 
     void readFolder(string path);
     void free();
@@ -29,27 +28,38 @@ public:
         return mix(chair1.seat, chair2.leg, chair3.back, chair4.arm);
     };
 
+    // Initialize Method
+    ObjBuffer initialize(int idx) {
+        record.resize(2, 4);
+
+        ChairBuffer chair1 = chairs[idx];
+        ChairBuffer chair2 = chairs[idx];
+        ChairBuffer chair3 = chairs[idx];
+        ChairBuffer chair4 = chairs[idx];
+
+        return mix(chair1.seat, chair2.leg, chair3.back, chair4.arm);
+    }
+
     // Evolve Method
-    ObjBuffer initialize(int level, int idx) {
-        cout << "evolve call " << idx << endl;
+    ObjBuffer evolve(int level, int idx, vector<int> selected_idx) {
+        for (int i = 0; i < selected_idx.size(); i++) {
+            record(i, 0) = selected_idx[i];
+        }
+
+        int which_record = int(idx / chairs.size()); 
+        int which_origin = idx % chairs.size(); 
         
+        cout << idx << " | fixed seed - " << which_origin << " | changed seed - " << which_record << endl;
         int seat_id = rand() % chairs.size();
         int leg_id = rand() % chairs.size();
         int back_id = rand() % chairs.size();
         int arm_id = rand() % chairs.size();
-        
-        if (level == 0) { // init
-            if (idx == 0) { // init seeds for this level
-                seeds.clear();
-                for (int i = 0; i < chairs.size(); i++) {
-                    seeds.push_back(i);
-                }
-            }
-            int seed = takeSeed();
-            seat_id = seed;
-            leg_id = seed;
-            back_id = seed;
-            arm_id = seed;
+
+        if (level == 1) { // leg
+            seat_id = record(which_record, 0);
+            leg_id = which_origin;
+            arm_id = record(which_record, 0);
+            back_id = record(which_record, 0);
         } 
 
         ChairBuffer chair1 = chairs[seat_id];
@@ -60,44 +70,9 @@ public:
         return mix(chair1.seat, chair2.leg, chair3.back, chair4.arm);
     }
 
-    // Evolve Method
-    ObjBuffer evolve(int level, int idx) {
-        // cout << "evolve call " << idx << endl;
-        
-        // int seat_id = rand() % chairs.size();
-        // int leg_id = rand() % chairs.size();
-        // int back_id = rand() % chairs.size();
-        // int arm_id = rand() % chairs.size();
-        
-        // if (level == 0) { // init
-        //     if (idx == 0) { // init seeds for this level
-        //         seeds.clear();
-        //         for (int i = 0; i < chairs.size(); i++) {
-        //             seeds.push_back(i);
-        //         }
-        //     }
-        //     int seed = takeSeed();
-        //     seat_id = seed;
-        //     leg_id = seed;
-        //     back_id = seed;
-        //     arm_id = seed;
-        // } else if (level == 1) { // swap leg
-            
-        // }
-
-        // ChairBuffer chair1 = chairs[seat_id];
-        // ChairBuffer chair2 = chairs[leg_id];
-        // ChairBuffer chair3 = chairs[back_id];
-        // ChairBuffer chair4 = chairs[arm_id];
-
-        // return mix(chair1.seat, chair2.leg, chair3.back, chair4.arm);
-    }
-
 private:
     void transformLeg(ChairPartBuffer& seat, ChairPartBuffer& leg);
     void transformBack(ChairPartBuffer& seat, ChairPartBuffer& back);
     void transformArm(ChairPartBuffer& seat, ChairPartBuffer& back, ChairPartBuffer& arm);
-
-    int takeSeed();
 };
 #endif // CHAIRMIXER_H

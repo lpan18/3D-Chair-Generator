@@ -144,13 +144,3 @@ void ChairMixer::transformArm(ChairPartBuffer& seat, ChairPartBuffer& back, Chai
     arm.resetPartFeatures();
 
 }
-
-int ChairMixer::takeSeed() {  
-    int seed_idx = rand() % seeds.size();
-    int seed = seeds[seed_idx];
-    seeds.erase(seeds.begin() + seed_idx);
-
-    cout << "Seed idx: " << seed_idx << "; seed: " << seed << "; total: " << seeds.size() << endl;
-
-    return seed;
-}
