@@ -87,7 +87,7 @@ struct ChairPartOrigSeatFeatures {
 
 	static ChairPartOrigSeatFeatures fromSeat(ObjBuffer& seat);
 	// change code for neg
-	static Vector3f transform(Matrix3f scale, float negScale, Vector3f negOffset, Vector3f v, Vector3f oldBase, Vector3f newBase);
+	static Vector3f transform(Matrix3f scale, Vector3f v, Vector3f oldBase, Vector3f newBase);
 };
 
 struct ChairPartFeatures {

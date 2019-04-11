@@ -336,7 +336,7 @@ public:
             }
         }
 
-        size_t n = 2000; 
+        size_t n = 3000; 
         // count existing files in folder
         // for (const auto & entry : experimental::filesystem::directory_iterator(folder)){
             // cout << entry.path() << endl;
@@ -354,7 +354,7 @@ public:
             // bool wasVisible = objs[0]->visible();
             for(size_t idx = 0; idx < n; idx++)
             {  
-                string objname = folder + "/n-"  + to_string(idx) + ".obj";
+                string objname = folder + "/n-"  + to_string(6000+idx) + ".obj";
                 mCanvas->tempTest(objname);
                 // mCanvas->writeObj(objname);
 
@@ -365,33 +365,33 @@ public:
                 // objs[idx]->setCallback([this, objname, scorelabel, idx] {
                 //     ObjViewApp::fileName = objname;
                 //     mCanvas->loadObj(fileName);
-                //     vector<float> scores; 
-                //     ifstream file;
-                //     file.open("score.txt");
-                //     if (!file) {
-                //         cout << "Unable to open file";
-                //         exit(1); 
-                //     }
-                //     string line;
-                //     while (getline(file, line)) {
-                //         scores.push_back(strtof((line).c_str(),0));
-                //     }
-                //     file.close();
-                //     scorelabel->setCaption("Score:  " + to_string(scores[idx]));
+                // //     vector<float> scores; 
+                // //     ifstream file;
+                // //     file.open("score.txt");
+                // //     if (!file) {
+                // //         cout << "Unable to open file";
+                // //         exit(1); 
+                // //     }
+                // //     string line;
+                // //     while (getline(file, line)) {
+                // //         scores.push_back(strtof((line).c_str(),0));
+                // //     }
+                // //     file.close();
+                // //     scorelabel->setCaption("Score:  " + to_string(scores[idx]));
                 // });
             }
 
-            if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
-                cout << "Successfully created depth map" << endl; 
-                // if(system("/usr/bin/python3 test.py ") == 0){
-                // // if (system("/opt/anaconda3/bin/python test.py") == 0) {
-                //     cout << "Successfully scored chairs" << endl; 
-                // } else {
-                //     cout << "Error scoring chairs" << endl; 
-                // }
-            } else {
-                cout << "Error creating depth map" << endl; 
-            }
+            // if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
+            //     cout << "Successfully created depth map" << endl; 
+            //     // if(system("/usr/bin/python3 test.py ") == 0){
+            //     // // if (system("/opt/anaconda3/bin/python test.py") == 0) {
+            //     //     cout << "Successfully scored chairs" << endl; 
+            //     // } else {
+            //     //     cout << "Error scoring chairs" << endl; 
+            //     // }
+            // } else {
+            //     cout << "Error creating depth map" << endl; 
+            // }
 
             performLayout();           
         });            

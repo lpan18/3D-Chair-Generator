@@ -72,14 +72,8 @@ void ChairMixer::transformLeg(ChairPartBuffer& seat, ChairPartBuffer& leg) {
             0, legScaleY, 0,
             0, 0, legScaleZ;
 
-    // temp code start ===============
-    Vector3f negOffset1 = getNegOffset() * (seat.origSeatFeatures.width + seat.origSeatFeatures.depth)/2;
-    float negScale1 = getNegScale();
-    // temp code end ============
-
     for (int i = 0; i < leg.nVertices; i++) {
-        // change code for neg
-        leg.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, negScale1, negOffset1, leg.vertices[i], leg.origSeatFeatures.bottomCenter, seat.origSeatFeatures.bottomCenter);
+        leg.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, leg.vertices[i], leg.origSeatFeatures.bottomCenter, seat.origSeatFeatures.bottomCenter);
     }
 
     leg.resetBound();
@@ -88,7 +82,7 @@ void ChairMixer::transformLeg(ChairPartBuffer& seat, ChairPartBuffer& leg) {
     float legDistFrontBack = abs(leg.partFeatures.topRightBack.y() - leg.partFeatures.topRightFront.y());
     float legDistLeftRight = abs(leg.partFeatures.topRightBack.x() - leg.partFeatures.topLeftBack.x());
 
-if (legDistFrontBack / seat.origSeatFeatures.depth < DIST_THLD) {
+    if (legDistFrontBack / seat.origSeatFeatures.depth < DIST_THLD) {
         if (legDistLeftRight / seat.origSeatFeatures.width < DIST_THLD) {            // In this case, the legs are considered as one whole entity.
             Vector3f pb(leg.bound.getCenter().x(), leg.bound.getCenter().y(), leg.bound.minZ);
             Vector3f p0 = leg.partFeatures.topRightBack;
@@ -119,6 +113,15 @@ if (legDistFrontBack / seat.origSeatFeatures.depth < DIST_THLD) {
     
     leg.resetBound();
     leg.resetPartFeatures();
+    
+    // temp code start ===============
+    // Vector3f negOffset1 = getNegOffset() * (seat.origSeatFeatures.width + seat.origSeatFeatures.depth)/2;
+    // float negScale1 = getNegScale();
+    // for (int i = 0; i < leg.nVertices; i++) {
+    //     leg.vertices[i] += negOffset1;
+    // }
+    // temp code end ============
+
 }
 
 void ChairMixer::transformBack(ChairPartBuffer& seat, ChairPartBuffer& back) {
@@ -128,20 +131,8 @@ void ChairMixer::transformBack(ChairPartBuffer& seat, ChairPartBuffer& back) {
             0, backScale, 0,
             0, 0, backScale;
 
-    // temp code start ===============
-    Vector3f negOffset2 = getNegOffset() * (seat.origSeatFeatures.width + seat.origSeatFeatures.depth)/2;
-    float negScale2 = getNegScale();
-    // if(negOffset2.y() <= 0){
-    //     negOffset2.y() -= 0.25;
-    // }
-    // if(negOffset2.z() <= 0){
-    //     negOffset2.z() -= 0.25;
-    // }
-    // temp code end ============
-
     for (int i = 0; i < back.nVertices; i++) {
-        // change code for neg
-        back.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, negScale2, negOffset2, back.vertices[i], back.origSeatFeatures.backTopCenter, seat.origSeatFeatures.backTopCenter);
+        back.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, back.vertices[i], back.origSeatFeatures.backTopCenter, seat.origSeatFeatures.backTopCenter);
     }
 
     back.resetBound();
@@ -159,7 +150,17 @@ void ChairMixer::transformBack(ChairPartBuffer& seat, ChairPartBuffer& back) {
         Vector3f p0 = back.partFeatures.bottomRightBack;
         Vector3f p1 = seat.getClosestPointTo(p0);
         back.transformSingleXSym(pb, p0, p1);
-    }}
+    }
+    
+    // temp code start ===============
+    Vector3f negOffset2 = getNegOffset() * (seat.origSeatFeatures.width + seat.origSeatFeatures.depth)/2;
+    float negScale2 = getNegScale();
+    for (int i = 0; i < back.nVertices; i++) {
+        back.vertices[i] += negOffset2;
+    }
+    // temp code end ============
+
+}
 
 void ChairMixer::transformArm(ChairPartBuffer& seat, ChairPartBuffer& back, ChairPartBuffer& arm) {
     float armScaleX = seat.origSeatFeatures.width / arm.origSeatFeatures.width;
@@ -169,15 +170,9 @@ void ChairMixer::transformArm(ChairPartBuffer& seat, ChairPartBuffer& back, Chai
     scale << armScaleX, 0, 0,
             0, armScaleY, 0,
             0, 0, armScaleZ;
-    
-    // temp code start ===============
-    Vector3f negOffset3 = getNegOffset() * (seat.origSeatFeatures.width + seat.origSeatFeatures.depth)/2;
-    float negScale3 = getNegScale();
-    // temp code end ============
 
     for (int i = 0; i < arm.nVertices; i++) {
-        // change code for neg
-        arm.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, negScale3, negOffset3, arm.vertices[i], arm.origSeatFeatures.topCenter, seat.origSeatFeatures.topCenter);
+        arm.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, arm.vertices[i], arm.origSeatFeatures.topCenter, seat.origSeatFeatures.topCenter);
     }
 
     arm.resetBound();
@@ -192,5 +187,13 @@ void ChairMixer::transformArm(ChairPartBuffer& seat, ChairPartBuffer& back, Chai
 
     arm.resetBound();
     arm.resetPartFeatures();
+
+    // temp code start ===============
+    Vector3f negOffset3 = getNegOffset() * (seat.origSeatFeatures.width + seat.origSeatFeatures.depth)/2;
+    float negScale3 = getNegScale();
+    for (int i = 0; i < arm.nVertices; i++) {
+        arm.vertices[i] += negOffset3;
+    }
+    // temp code end ============
 
 }
