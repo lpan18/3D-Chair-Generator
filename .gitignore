@@ -32,6 +32,7 @@
 *.out
 *.app
 
+__pycache__/
 lib
 CMakeFiles/
 testfiles/
@@ -50,6 +51,7 @@ ChairImagesBackOffset
 ChairImagesAllOffset
 ChairImagesLegOffset
 ChairImagesTestOffset
+<<<<<<< HEAD
 chairs-data
 cmake_install.cmake
 .DS_Store
@@ -58,3 +60,10 @@ output_Front/
 output_Side/
 output_Top/
 Renderded/
+=======
+Completion
+Rendered
+chairs-data
+cmake_install.cmake
+.DS_Store
+>>>>>>> b3c183aabe6447cc9520a1c9558434d28453b56f
