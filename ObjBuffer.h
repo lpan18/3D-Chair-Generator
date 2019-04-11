@@ -7,6 +7,7 @@ using namespace std;
 using Eigen::Vector3f;
 using Eigen::Vector3i;
 using Eigen::Vector4f;
+using Eigen::Matrix3f;
 using Eigen::Matrix4f;
 using Eigen::MatrixXf;
 
@@ -31,6 +32,15 @@ struct ObjBound {
 	    float scale = 1.0f / maxOffset.maxCoeff();
 		return scale;
 	}
+
+	float getAbsScale() {
+		float distX = maxX - minX;
+		float distY = maxY - minY;
+		float distZ = maxZ - minZ;
+		float maxVal = std::sqrt(distX * distX + distY * distY + distZ * distZ);
+	    float scale = 1.0f / maxVal;
+		return scale;
+	}
 };
 
 struct ObjGroup {
@@ -45,36 +55,68 @@ struct ObjGroup {
 struct ObjBuffer {
 	int nVertices;
 	int mFaces;
-	Vector3f center;
-	float scale;
-
 	Vector3f* vertices;
 	Vector3i* faces;
+
 	vector<ObjGroup> groups;
+
+	ObjBound bound;
 
     // Read obj file
 	static ObjBuffer readObjFile(string filename);
 	// Combine multiple ObjBuffers
-	static ObjBuffer combineObjBuffers(vector<ObjBuffer> objBuffers);
+	static ObjBuffer combineObjBuffers(vector<ObjBuffer*> objBuffers);
 	// Generate a new ObjBuffer for group groupName
 	ObjBuffer getGroup(string groupName);
-	// Delete vertices and faces
-	void destroy();
-	// Reset center and scale of this ObjBuffer
-	void setCenterAndScale();
-	// Get ObjBound
-	ObjBound getBound();
+	// Release vertices and faces
+	void free();
+	// Reset ObjBound
+	void resetBound();
+	// Get the closest point to p
+	Vector3f getClosestPointTo(Vector3f p);
+	// Get the closest point from p to face f
+	Vector3f getClosesPoint(Vector3i f, Vector3f p);
 };
 
-struct ChairPartBuffer : ObjBuffer {
-	Vector3f backCenter;
+struct ChairPartOrigSeatFeatures {
+	Vector3f backTopCenter;
 	Vector3f topCenter;
 	Vector3f bottomCenter;
 	float width;
 	float depth;
 
-	static ChairPartBuffer fromSeat(ObjBuffer seat);
-	static ChairPartBuffer fromPart(ObjBuffer part, ChairPartBuffer seat);
+	static ChairPartOrigSeatFeatures fromSeat(ObjBuffer& seat);
+	// change code for neg
+	static Vector3f transform(Matrix3f scale, float negScale, Vector3f negOffset, Vector3f v, Vector3f oldBase, Vector3f newBase);
+};
+
+struct ChairPartFeatures {
+	Vector3f topRightBack;
+	Vector3f topRightFront;
+	Vector3f topLeftFront;
+	Vector3f topLeftBack;
+
+	Vector3f bottomRightBack;
+	Vector3f bottomRightFront;
+	Vector3f bottomLeftFront;
+	Vector3f bottomLeftBack;
+};
+
+struct ChairPartBuffer : ObjBuffer {
+	ChairPartOrigSeatFeatures origSeatFeatures;
+	ChairPartFeatures partFeatures;
+
+	static ChairPartBuffer fromSeat(ObjBuffer& seat);
+	static ChairPartBuffer fromPart(ObjBuffer& part, ChairPartBuffer& seat);
+	void resetPartFeatures();
+	Vector3f getTransformed(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v);
+	void transformSingle(Vector3f pb, Vector3f p0, Vector3f p1);
+	Vector3f getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v, bool whetherScaleZ = true);
+	void transformSingleXSym(Vector3f pb, Vector3f p0, Vector3f p1);
+	void transformDouleXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1, bool whetherScaleZ = true);
+	void align(Vector3f p_target);
+private:
+	Vector3f getFeature(float x, float y, float z);
 };
 
 struct ChairBuffer {
@@ -85,5 +127,7 @@ struct ChairBuffer {
 	ChairPartBuffer arm;
 
 	static ChairBuffer readObjFile(string filename);
+    // Release buffers
+	void free();
 };
 #endif // OBJBUFFER_H

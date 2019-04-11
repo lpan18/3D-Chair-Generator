@@ -11,6 +11,8 @@ public:
     vector<ChairBuffer> chairs;
 
     void readFolder(string path);
+    void free();
+    
     ObjBuffer mix(ChairPartBuffer seat, ChairPartBuffer leg, ChairPartBuffer back, ChairPartBuffer arm);
 
     // Temp Test Method
@@ -22,5 +24,10 @@ public:
 
         return mix(chair1.seat, chair2.leg, chair3.back, chair4.arm);
     }
+
+private:
+    void transformLeg(ChairPartBuffer& seat, ChairPartBuffer& leg);
+    void transformBack(ChairPartBuffer& seat, ChairPartBuffer& back);
+    void transformArm(ChairPartBuffer& seat, ChairPartBuffer& back, ChairPartBuffer& arm);
 };
 #endif // CHAIRMIXER_H

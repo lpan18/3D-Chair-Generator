@@ -30,9 +30,9 @@ bool sortByStartVertexThenByEndVertex(const W_edge* edge1, const W_edge* edge2) 
 MatrixXf Mesh::getPositions() {
 	MatrixXf positions = MatrixXf(3, mFaces * 9);
 	for (int i = 0; i < mFaces; i++) {
-		positions.col(i * 3) << (faces[i].edge->end->p - center) * scale;
-		positions.col(i * 3 + 1) << (faces[i].edge->start->p - center) * scale;
-		positions.col(i * 3 + 2) << (faces[i].edge->right_prev->start->p - center) * scale;
+		positions.col(i * 3) << faces[i].edge->end->p;
+		positions.col(i * 3 + 1) << faces[i].edge->start->p;
+		positions.col(i * 3 + 2) << faces[i].edge->right_prev->start->p;
 
 		positions.col(mFaces * 3 + i * 6) << positions.col(i * 3) * 1.005;
 		positions.col(mFaces * 3 + i * 6 + 1) << positions.col(i * 3 + 1) * 1.005;
@@ -109,6 +109,56 @@ void Mesh::writeObj(string fileName) {
 	}
 }
 
+// Write mesh to an obj file
+void Mesh::writeObjFromMesh(string fileName) {
+	float maxX = 0, maxY = 0, maxZ =0;
+	float minX = 0, minY = 0, minZ = 0;
+	float sumX = 0, sumY = 0, sumZ = 0;
+	float avgX = 0, avgY = 0, avgZ = 0;
+
+	for (int i = 0; i < nVertices; i++) {
+		maxX = vertices[i].p.x() > maxX ? vertices[i].p.x() : maxX;
+		maxY = vertices[i].p.y() > maxY ? vertices[i].p.y() : maxY;
+		maxZ = vertices[i].p.z() > maxZ ? vertices[i].p.z() : maxZ;
+		minX = vertices[i].p.x() < minX ? vertices[i].p.x() : minX;
+		minY = vertices[i].p.y() < minY ? vertices[i].p.y() : minY;
+		minZ = vertices[i].p.z() < minZ ? vertices[i].p.z() : minZ;
+		sumX = vertices[i].p.x();
+		sumY = vertices[i].p.y();
+		sumZ = vertices[i].p.z();
+	}
+
+	float distX = maxX - minX;
+	float distY = maxY - minY;
+	float distZ = maxZ - minZ;
+	avgX = sumX / float(nVertices);
+	avgY = sumY / float(nVertices);
+	avgZ = sumZ / float(nVertices);
+	float scale = maxX - minX;
+	if ((maxY - minY) > scale) scale = (maxY - minY);
+	if ((maxZ - minZ) > scale) scale = (maxZ - minZ);
+	scale = scale;
+
+	stringstream ss;
+	ss << "# " << nVertices << " " << mFaces << endl;
+	for (int i = 0; i < nVertices; i++) {
+		float currX = (vertices[i].p.x() - avgX) / scale;
+		float currY = (vertices[i].p.y() - avgY) / scale;
+		float currZ = (vertices[i].p.z() - avgZ) / scale;
+		ss << "v " << currX << " " << currY << " " << currZ << endl;
+	}
+	for (int i = 0; i < mFaces; i++) {
+		ss << "f " << faces[i].edge->end - vertices + 1 << " " << faces[i].edge->start - vertices + 1 << " " << faces[i].edge->right_prev->start - vertices + 1 << endl;
+	}
+
+	ofstream outputFile(fileName);
+	if (outputFile.is_open())
+	{
+		outputFile << ss.str();
+		outputFile.close();
+	}
+}
+
 // Read obj buffer
 void Mesh::readObjBuffer(ObjBuffer buffer) {
 	nVertices = buffer.nVertices;
@@ -119,11 +169,12 @@ void Mesh::readObjBuffer(ObjBuffer buffer) {
 	faces = new Face[mFaces];
 	w_edges = new W_edge[lW_edges];
 
-	center = buffer.center;
-	scale = buffer.scale;
+	center = buffer.bound.getCenter();
+	scale = buffer.bound.getScale();
+	float abs_scale = buffer.bound.getAbsScale();
 
 	for (int vertexi = 0; vertexi < nVertices; vertexi++) {
-		vertices[vertexi].p = buffer.vertices[vertexi];
+		vertices[vertexi].p = (buffer.vertices[vertexi] - center) * abs_scale;
 	}
 
 	int w_edgei = 0;

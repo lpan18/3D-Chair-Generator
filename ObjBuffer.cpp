@@ -5,6 +5,7 @@
 #include <sstream>
 #include "ObjBuffer.h"
 
+
 // Read Obj file to ObjBuffer
 ObjBuffer ObjBuffer::readObjFile(string filename) {
 	string line;
@@ -65,19 +66,19 @@ ObjBuffer ObjBuffer::readObjFile(string filename) {
 	}
 
 	// Set Center and Scale
-	buffer.setCenterAndScale();
+	buffer.resetBound();
 
 	return buffer;
 }
 
-ObjBuffer ObjBuffer::combineObjBuffers(vector<ObjBuffer> objBuffers) {
+ObjBuffer ObjBuffer::combineObjBuffers(vector<ObjBuffer*> objBuffers) {
 	ObjBuffer buffer;
 	// First, get vCount and fCount and initialize buffer
 	int vCount = 0;
 	int fCount = 0;
 	for (auto b : objBuffers) {
-		vCount += b.nVertices;
-		fCount += b.mFaces;
+		vCount += b->nVertices;
+		fCount += b->mFaces;
 	}
 
 	buffer.nVertices = vCount;
@@ -91,26 +92,35 @@ ObjBuffer ObjBuffer::combineObjBuffers(vector<ObjBuffer> objBuffers) {
 	for (auto b : objBuffers) {
 		int viOffset = vi;
 		
-		for (int i = 0; i < b.nVertices; i++) {
-			buffer.vertices[vi] = b.vertices[i];
+		for (int i = 0; i < b->nVertices; i++) {
+			buffer.vertices[vi] = b->vertices[i];
 			vi++;
 		}
 		
-		for (int i = 0; i < b.mFaces; i++) {
-			buffer.faces[fi] = b.faces[i] + Vector3i(viOffset, viOffset, viOffset);
+		for (int i = 0; i < b->mFaces; i++) {
+			buffer.faces[fi] = b->faces[i] + Vector3i(viOffset, viOffset, viOffset);
 			fi++;
 		}
 	}
 
-	buffer.setCenterAndScale();
+	// Reset vertices and faces for objBuffers
+	Vector3f* vCurrent = buffer.vertices;
+	Vector3i* fCurrent = buffer.faces;
+	for (auto b : objBuffers) {
+		b->vertices = vCurrent;
+		b->faces = fCurrent;
+
+		vCurrent += b->nVertices;
+		fCurrent += b->mFaces;
+	}
+
+	buffer.resetBound();
 	
 	return buffer;
 }
 
 ObjBuffer ObjBuffer::getGroup(string groupName) {
 	ObjBuffer buffer;
-	buffer.center = center;
-	buffer.scale = scale;
 
 	// First, get vCount and fCount and initialize buffer
 	int vCount = 0;
@@ -145,21 +155,17 @@ ObjBuffer ObjBuffer::getGroup(string groupName) {
 		}
 	}
 
+	buffer.resetBound();
+
 	return buffer;
 }
 
-void ObjBuffer::destroy() {
+void ObjBuffer::free() {
 	delete []vertices;
 	delete []faces;
 }
 
-void ObjBuffer::setCenterAndScale() {
-	ObjBound bound = getBound();
-	center = bound.getCenter();
-	scale = bound.getScale();
-}
-
-ObjBound ObjBuffer::getBound() {
+void ObjBuffer::resetBound() {
 	float maxX, maxY, maxZ;
 	float minX, minY, minZ;
 	maxX = maxY = maxZ = -MAXVALUE;
@@ -174,54 +180,189 @@ ObjBound ObjBuffer::getBound() {
 		minZ = vertices[i].z() < minZ ? vertices[i].z() : minZ;
 	}
 
-	ObjBound bound;
 	bound.maxX = maxX;
 	bound.maxY = maxY;
 	bound.maxZ = maxZ;
 	bound.minX = minX;
 	bound.minY = minY;
 	bound.minZ = minZ;
-
-	return bound;
 }
 
-ChairPartBuffer ChairPartBuffer::fromSeat(ObjBuffer seat) {
+float getDist(Vector3f vt, Vector3f p){
+	Vector3f dvt = vt - p;
+	return dvt.x() * dvt.x() + dvt.y() * dvt.y() + dvt.z() * dvt.z();
+}
+
+// get closest point(compared to vertices and center of face) to p
+Vector3f ObjBuffer::getClosestPointTo(Vector3f p) {
+	float minDistQuad = MAXVALUE;
+	Vector3f pc;
+	for (int i = 0; i < nVertices; i++) {
+		float distQuad = getDist(vertices[i], p);
+		if (distQuad < minDistQuad) {
+			minDistQuad = distQuad;
+			pc = vertices[i];
+		}
+	}
+
+	for (int i = 0; i < mFaces; i++) {
+		Vector3i f = faces[i];
+		Vector3f vt0 = vertices[f[0] - 1];
+		Vector3f vt1 = vertices[f[1] - 1];
+		Vector3f vt2 = vertices[f[2] - 1];	
+		Vector3f vt_center = (vt0 + vt1 + vt2) / 3.0f;			
+		float dist_center = getDist(vt_center, p);
+		if (dist_center < minDistQuad) {
+			minDistQuad = dist_center;
+			pc = vt_center;
+		}
+	}
+	return pc;
+}
+
+ChairPartOrigSeatFeatures ChairPartOrigSeatFeatures::fromSeat(ObjBuffer& seat) {
+	seat.resetBound();
+	ChairPartOrigSeatFeatures features;
+	ObjBound bound = seat.bound;
+	Vector3f center = bound.getCenter();
+	
+	features.backTopCenter = Vector3f(center.x(), bound.maxY, bound.maxZ);
+	features.topCenter = Vector3f(center.x(), center.y(), bound.maxZ);
+	features.bottomCenter = Vector3f(center.x(), center.y(), bound.minZ);
+	features.width = bound.maxX - bound.minX;
+	features.depth = bound.maxY - bound.minY;
+
+	return features;
+}
+
+Vector3f ChairPartOrigSeatFeatures::transform(Matrix3f scale, float negScale, Vector3f negOffset, Vector3f v, Vector3f oldBase, Vector3f newBase) {
+
+    Vector3f offset = v - oldBase;
+	
+	offset = offset * negScale + negOffset; // temp code
+
+    return scale * offset + newBase;
+}
+
+ChairPartBuffer ChairPartBuffer::fromSeat(ObjBuffer& seat) {
 	ChairPartBuffer seat1;
 	seat1.nVertices = seat.nVertices;
 	seat1.mFaces = seat.mFaces;
-	seat1.center = seat.center;
-	seat1.scale = seat.scale;
 	seat1.vertices = seat.vertices;
 	seat1.faces = seat.faces;
-
-	ObjBound bound = seat1.getBound();
-	Vector3f center = bound.getCenter();
-	
-	seat1.backCenter = Vector3f(center.x(), bound.maxY, bound.minZ);
-	seat1.topCenter = Vector3f(center.x(), center.y(), bound.minZ);
-	seat1.bottomCenter = Vector3f(center.x(), center.y(), bound.maxZ);
-	seat1.width = bound.maxX - bound.minX;
-	seat1.depth = bound.maxY - bound.minY;
+	seat1.bound = seat.bound;
+	seat1.origSeatFeatures = ChairPartOrigSeatFeatures::fromSeat(seat1);
+	seat1.resetPartFeatures();
 
 	return seat1;
 }
 
-ChairPartBuffer ChairPartBuffer::fromPart(ObjBuffer part, ChairPartBuffer seat) {
+ChairPartBuffer ChairPartBuffer::fromPart(ObjBuffer& part, ChairPartBuffer& seat) {
 	ChairPartBuffer part1;
 	part1.nVertices = part.nVertices;
 	part1.mFaces = part.mFaces;
-	part1.center = part.center;
-	part1.scale = part.scale;
 	part1.vertices = part.vertices;
 	part1.faces = part.faces;
-
-	part1.backCenter = seat.backCenter;
-	part1.topCenter = seat.topCenter;
-	part1.bottomCenter = seat.bottomCenter;
-	part1.width = seat.width;
-	part1.depth = seat.depth;
+	part1.bound = part.bound;
+	part1.origSeatFeatures = seat.origSeatFeatures;
+	part1.resetPartFeatures();
 
 	return part1;
+}
+
+Vector3f ChairPartBuffer::getFeature(float x, float y, float z) {
+	Vector3f feature;
+	float minError = MAXVALUE;
+
+	Vector3f v;
+	float error;
+	for (int i = 0; i < nVertices; i++) {
+		v = vertices[i];
+		error = abs(v.x() - x) + 2 * abs(v.y() - y) + 3 * abs(v.z() - z);
+		if (error < minError) {
+			feature = v;
+			minError = error;
+		}
+	}
+
+	return feature;
+}
+
+void ChairPartBuffer::resetPartFeatures() {
+	resetBound();
+
+	if (nVertices > 0) {
+		partFeatures.topRightBack = getFeature(bound.minX, bound.maxY, bound.maxZ);
+		partFeatures.topRightFront = getFeature(bound.minX, bound.minY, bound.maxZ);
+		partFeatures.topLeftFront = getFeature(bound.maxX, bound.minY, bound.maxZ);
+		partFeatures.topLeftBack = getFeature(bound.maxX, bound.maxY, bound.maxZ);
+
+		partFeatures.bottomRightBack = getFeature(bound.minX, bound.maxY, bound.minZ);
+		partFeatures.bottomRightFront = getFeature(bound.minX, bound.minY, bound.minZ);
+		partFeatures.bottomLeftFront = getFeature(bound.maxX, bound.minY, bound.minZ);
+		partFeatures.bottomLeftBack = getFeature(bound.maxX, bound.maxY, bound.minZ);
+	} else {
+		partFeatures.topRightBack =
+		partFeatures.topRightFront =
+		partFeatures.topLeftFront =
+		partFeatures.topLeftBack =
+		partFeatures.bottomRightBack =
+		partFeatures.bottomRightFront =
+		partFeatures.bottomLeftFront =
+		partFeatures.bottomLeftBack = Vector3f::Zero();
+	}
+}
+
+Vector3f ChairPartBuffer::getTransformed(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v) {
+	Vector3f offsetbase = p1 - p0;
+	float v1x = v.x() + offsetbase.x();
+	float v1y = v.y() + offsetbase.y();
+	float scaleZ = (p1.z() - pb.z()) / (p0.z() - pb.z());
+	float v1z = (v.z() - pb.z()) * scaleZ  + pb.z();
+	return Vector3f(v1x, v1y, v1z);
+}
+
+void ChairPartBuffer::transformSingle(Vector3f pb, Vector3f p0, Vector3f p1) {
+	for (int i = 0; i < nVertices; i++) {
+		vertices[i] = getTransformed(pb, p0, p1, vertices[i]);
+	}
+}
+
+Vector3f ChairPartBuffer::getTransformedXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f v, bool whetherScaleZ) {
+	Vector3f offsetbase = p1 - p0;
+	float v1x = v.x() + (pb.x() - v.x()) / (pb.x() - p0.x()) * offsetbase.x();
+	float v1y = v.y() + offsetbase.y();
+	float scaleZ = whetherScaleZ ? ((p1.z() - pb.z()) / (p0.z() - pb.z())) : 1;
+	float v1z = (v.z() - pb.z()) * scaleZ  + pb.z();
+	return Vector3f(v1x, v1y, v1z);
+}
+
+void ChairPartBuffer::transformSingleXSym(Vector3f pb, Vector3f p0, Vector3f p1) {
+	for (int i = 0; i < nVertices; i++) {
+		vertices[i] = getTransformedXSym(pb, p0, p1, vertices[i]);
+	}
+}
+
+void ChairPartBuffer::transformDouleXSym(Vector3f pb, Vector3f p0, Vector3f p1, Vector3f q0, Vector3f q1, bool whetherScaleZ) {
+	for (int i = 0; i < nVertices; i++) {
+		Vector3f vp = getTransformedXSym(pb, p0, p1, vertices[i], whetherScaleZ);
+		Vector3f vq = getTransformedXSym(pb, q0, q1, vertices[i], whetherScaleZ);
+		float wp = vertices[i].y() > p0.y() ? 1.0f :
+		            vertices[i].y() < q0.y() ? 0.0f :
+					(vertices[i].y() - q0.y()) / (p0.y() - q0.y());
+					
+		vertices[i] = vp * wp + vq * (1.0f - wp);
+	}
+}
+
+void ChairPartBuffer::align(Vector3f p_target) {
+	Vector3f pb(bound.getCenter().x(), bound.getCenter().y(), bound.getCenter().z());
+	float offsetX = p_target.x() - pb.x();
+	float offsetY = p_target.y() - pb.y();
+	for (int i = 0; i < nVertices; i++) {
+		vertices[i].x() += offsetX;
+		vertices[i].y() += offsetY;
+	}
 }
 
 ChairBuffer ChairBuffer::readObjFile(string fileName) {
@@ -239,4 +380,12 @@ ChairBuffer ChairBuffer::readObjFile(string fileName) {
 	chairBuffer.arm = ChairPartBuffer::fromPart(arm, chairBuffer.seat);
 
 	return chairBuffer;
+}
+
+void ChairBuffer::free() {
+	arm.free();
+	back.free();
+	leg.free();
+	seat.free();
+	chair.free();
 }

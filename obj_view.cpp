@@ -36,6 +36,8 @@
 #include <experimental/filesystem>
 #include <cstdlib>
 #include <fstream>
+#include <stdio.h>
+#include <sys/stat.h>
 
 
 // Includes for the GLTexture class.
@@ -118,18 +120,21 @@ public:
         mShader.setUniform("V", V);
 
         mTranslation = Vector3f(0, 0, 0);
-        mZoom = Vector3f(1.8, 1.8, 1.8);
+        mZoom = Vector3f(4, 4, 4);
 
         // This the light origin position in your environment, which is totally arbitrary
         // however it is better if it is behind the observer
         mShader.setUniform("LightPosition_worldspace", Vector3f(2,-6,-4));
 
+        string path = "ChairModels";
+        mMixer.readFolder(path);
     }
 
     //flush data on call
     ~MyGLCanvas() {
-        mShader.free();
         delete mMesh;
+        mMixer.free();
+        mShader.free();
     }
 
     // method to load obj
@@ -143,15 +148,13 @@ public:
     }
 
     // Temp test method
-    void tempTest() {
-        string path = "ChairModels";
-        ChairMixer mixer;
-        mixer.readFolder(path);
-        ObjBuffer mixed = mixer.tempTest();
+    void tempTest(string fileName) {
+        ObjBuffer mixed = mMixer.tempTest();
 
         delete mMesh;
         mMesh = new Mesh(mixed);
-        
+        mMesh->writeObjFromMesh(fileName);
+
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);
         smoothNormals = mMesh->getSmoothNormals(&normals);
@@ -165,7 +168,6 @@ public:
             cout << "No object in scene" << endl;
         }
     }
-
 
     // Method to set shading mode
     void setShadingMode(int fShadingMode) {
@@ -241,37 +243,46 @@ public:
         mShader.setUniform("M", M);
 
         glEnable(GL_DEPTH_TEST);
+        glEnable(GL_PROGRAM_POINT_SIZE_EXT);
+        glPointSize(5);
 
-        if (mShadingMode != 2) {
+        if (mShadingMode != 2 && mShadingMode != 5) {
             mShader.drawArray(GL_TRIANGLES, 0, positions.cols() / 3);
         }
-        if (mShadingMode != 0 && mShadingMode != 1) {
+        if (mShadingMode != 0 && mShadingMode != 1 && mShadingMode != 5) {
             mShader.drawArray(GL_LINES, positions.cols() / 3, positions.cols() / 3 * 2);
-        }
+            mShader.drawArray(GL_POINTS, positions.cols() / 3, positions.cols() / 3 * 2);
 
+        }
+        // PointsCloud
+        if ( mShadingMode == 5){
+            mShader.drawArray(GL_POINTS, positions.cols() / 3, positions.cols() / 3 * 2);
+        }
         glDisable(GL_DEPTH_TEST);
+        glDisable(GL_PROGRAM_POINT_SIZE_EXT);
+
     }
 
 //Instantiation of the variables that can be acessed outside of this class to interact with the interface
 //Need to be updated if a interface element is interacting with something that is inside the scope of MyGLCanvas
 private:
-    Mesh *mMesh = NULL;
-    MatrixXf positions;
-    MatrixXf normals;
-    MatrixXf smoothNormals;
-    MatrixXf colors;
     nanogui::GLShader mShader;
     Eigen::Matrix4f mRotation;
     Eigen::Vector3f mZoom;
     Eigen::Vector3f mTranslation;
     nanogui::Arcball mArcball;
+    ChairMixer mMixer;
+    Mesh *mMesh = NULL;
+    MatrixXf positions;
+    MatrixXf normals;
+    MatrixXf smoothNormals;
+    MatrixXf colors;
     int mShadingMode = 0;
 };
 
-
 class ObjViewApp : public nanogui::Screen {
 public:
-    ObjViewApp() : nanogui::Screen(Eigen::Vector2i(800, 700), "Chair Modeling", false) {
+    ObjViewApp() : nanogui::Screen(Eigen::Vector2i(1000, 1000), "Chair Modeling", false) {
         using namespace nanogui;
 
 	    // Create a window context in which we will render the OpenGL canvas
@@ -288,7 +299,7 @@ public:
 	    Window *widgets = new Window(this, "Widgets");
         widgets->setPosition(Vector2i(560, 15));
         widgets->setLayout(new GroupLayout());
-	    widgets->setFixedSize(Vector2i(200, 700));
+	    widgets->setFixedSize(Vector2i(200, 1000));
 
 	    // Open obj file
         new Label(widgets, "File dialog", "sans-bold", 20);
@@ -316,15 +327,27 @@ public:
 
         // Generate chair obj buttons
         vector<Button*> objs;
-        string folder = "Completion/";       
-        size_t n = 0; 
-        // count existing files in folder
-        for (const auto & entry : experimental::filesystem::directory_iterator(folder)){
-            // cout << entry.path() << endl;
-            n++;
+        
+        // create output directory 
+        string folder = "Completion"; 
+        struct stat sb;
+        if (!(stat(folder.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode)))
+        {
+            const int dir_err = system("mkdir -p Completion");
+            if (-1 == dir_err)
+            {
+                printf("Error creating directory!n");
+                exit(1);
+            }
         }
-        n = 1000;
-        // if(n == 0) n = 5; // generate 5 objs in one test
+
+        size_t n = 2000; 
+        // count existing files in folder
+        // for (const auto & entry : experimental::filesystem::directory_iterator(folder)){
+            // cout << entry.path() << endl;
+            // n++;
+        // }
+        // if(n < 10) n = 10; // generate 5 objs in one test
         // for(size_t i = 0; i < n; i++){
         //     Button *obj = new Button(widgets, "chair " + to_string(i) + ".obj");
         //     obj->setVisible(false);  
@@ -336,30 +359,45 @@ public:
             // bool wasVisible = objs[0]->visible();
             for(size_t idx = 0; idx < n; idx++)
             {  
-                string objname = folder + to_string(idx) + ".obj";
-                mCanvas->tempTest();
-                mCanvas->writeObj(objname);
+                string objname = folder + "/n-"  + to_string(idx) + ".obj";
+                mCanvas->tempTest(objname);
+                // mCanvas->writeObj(objname);
 
                 // chairslabel->setVisible(true);
                 // scorelabel->setVisible(true);
                 // objs[idx]->setVisible(true);
-                // objs[idx]->setCallback([this, objname, scorelabel] {
+
+                // objs[idx]->setCallback([this, objname, scorelabel, idx] {
                 //     ObjViewApp::fileName = objname;
                 //     mCanvas->loadObj(fileName);
-                //     float score = 0.0;
-                //     if(system("/usr/bin/python score.py 1") == 0){
-                //         ifstream file;
-                //         file.open("score.txt");
-                //         if (!file) {
-                //             cout << "Unable to open file";
-                //             exit(1); 
-                //         }
-                //         file >> score;
-                //         file.close();
-                //         scorelabel->setCaption("Score:  " + to_string(score));
+                //     vector<float> scores; 
+                //     ifstream file;
+                //     file.open("score.txt");
+                //     if (!file) {
+                //         cout << "Unable to open file";
+                //         exit(1); 
                 //     }
+                //     string line;
+                //     while (getline(file, line)) {
+                //         scores.push_back(strtof((line).c_str(),0));
+                //     }
+                //     file.close();
+                //     scorelabel->setCaption("Score:  " + to_string(scores[idx]));
                 // });
             }
+
+            if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
+                cout << "Successfully created depth map" << endl; 
+                if(system("/usr/bin/python3 test.py ") == 0){
+                // if (system("/opt/anaconda3/bin/python test.py") == 0) {
+                    cout << "Successfully scored chairs" << endl; 
+                } else {
+                    cout << "Error scoring chairs" << endl; 
+                }
+            } else {
+                cout << "Error creating depth map" << endl; 
+            }
+
             performLayout();           
         });            
         
@@ -369,7 +407,7 @@ public:
         panelCombo->setLayout(new BoxLayout(Orientation::Horizontal,
                                        Alignment::Middle, 0, 2));
 
-        ComboBox *combo = new ComboBox(widgets, { "Flat", "Smooth", "Wireframe", "Flat+Wireframe", "Smooth+Wireframe"} );
+        ComboBox *combo = new ComboBox(widgets, { "Flat", "Smooth", "Wireframe", "Flat+Wireframe", "Smooth+Wireframe", "PointsCloud"} );
         combo->setCallback([&](int value) {
             mCanvas->setShadingMode(value);
         });
@@ -398,18 +436,15 @@ public:
         Screen::draw(ctx);
     }
 
-
 private:
     MyGLCanvas *mCanvas;
     string fileName;
-    int sdMode = 0;
-    int sdLevel = 0;
 };
 
 int main(int /* argc */, char ** /* argv */) {
 
     try {
-        srand (time(NULL));
+        srand (56843658);
         nanogui::init();
 
         /* scoped variables */ {

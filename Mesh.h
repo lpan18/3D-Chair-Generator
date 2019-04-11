@@ -20,7 +20,7 @@ public:
 		ObjBuffer buffer = ObjBuffer::readObjFile(fileName);
 		readObjBuffer(buffer);
 		constructLeft();
-		buffer.destroy();
+		buffer.free();
 	}
 	Mesh(ObjBuffer buffer) {
 		readObjBuffer(buffer);
@@ -45,6 +45,7 @@ public:
 	}
 	// Write mesh to an obj file
 	void writeObj(string fileName);
+	void writeObjFromMesh(string fileName);
 protected:
     // Number of vertices
 	int nVertices = 0;
