@@ -50,6 +50,8 @@ ChairImagesBackOffset
 ChairImagesAllOffset
 ChairImagesLegOffset
 ChairImagesTestOffset
+Completion
+Rendered
 chairs-data
 cmake_install.cmake
 .DS_Store
