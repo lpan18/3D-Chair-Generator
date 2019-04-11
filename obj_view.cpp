@@ -42,6 +42,7 @@
 
 // Includes for the GLTexture class.
 #include <algorithm>
+#include <numeric>      // std::iota
 #include <cstdint>
 #include <memory>
 #include <utility>
@@ -161,6 +162,34 @@ public:
         colors = mMesh->getColors();
     }
 
+    // Initialize method
+    void initialize(string fileName, int level, int idx) {
+        ObjBuffer mixed = mMixer.initialize(level, idx);
+
+        delete mMesh;
+        mMesh = new Mesh(mixed);
+        mMesh->writeObjFromMesh(fileName);
+
+        positions = mMesh->getPositions();
+        normals = mMesh->getNormals(&positions);
+        smoothNormals = mMesh->getSmoothNormals(&normals);
+        colors = mMesh->getColors();
+    }
+
+    // Evolve method
+    void evolve(string fileName, int level, int idx) {
+        ObjBuffer mixed = mMixer.evolve(level, idx);
+
+        delete mMesh;
+        mMesh = new Mesh(mixed);
+        mMesh->writeObjFromMesh(fileName);
+
+        positions = mMesh->getPositions();
+        normals = mMesh->getNormals(&positions);
+        smoothNormals = mMesh->getSmoothNormals(&normals);
+        colors = mMesh->getColors();
+    }
+
     void writeObj(string fileName) {
         if (mMesh != NULL) {
             mMesh->writeObj(fileName);
@@ -263,6 +292,9 @@ public:
 
     }
 
+public: 
+    ChairMixer mMixer;
+
 //Instantiation of the variables that can be acessed outside of this class to interact with the interface
 //Need to be updated if a interface element is interacting with something that is inside the scope of MyGLCanvas
 private:
@@ -271,7 +303,6 @@ private:
     Eigen::Vector3f mZoom;
     Eigen::Vector3f mTranslation;
     nanogui::Arcball mArcball;
-    ChairMixer mMixer;
     Mesh *mMesh = NULL;
     MatrixXf positions;
     MatrixXf normals;
@@ -320,6 +351,12 @@ public:
         // Test button
         Button *testBtn = new Button(widgets, "Test");
 
+        // Evolve buttons
+        Button *initBtn = new Button(widgets, "Initialize");
+        Button *legBtn = new Button(widgets, "Swap Legs");
+        Button *armBtn = new Button(widgets, "Swap Arms");
+        Button *backBtn = new Button(widgets, "Swap Back");
+
         Label *chairslabel = new Label(widgets, "Chair Models", "sans-bold", 20);
         Label *scorelabel = new Label(widgets, "Score:  ", "sans-bold", 20);
         chairslabel->setVisible(false);
@@ -341,26 +378,28 @@ public:
             }
         }
 
-        size_t n = 0; 
+        size_t n_to_show = 0; 
         // count existing files in folder
         // for (const auto & entry : experimental::filesystem::directory_iterator(folder)){
             // cout << entry.path() << endl;
             // n++;
         // }
-        if(n < 10) n = 10; // generate 5 objs in one test
-        for(size_t i = 0; i < n; i++){
+        if(n_to_show < 2) n_to_show = 2; // generate 5 objs in one test
+        for(size_t i = 0; i < n_to_show; i++){
             Button *obj = new Button(widgets, "chair " + to_string(i) + ".obj");
             obj->setVisible(false);  
             objs.push_back(obj);  
         }  
         
         // call back function for testBtn 
-        testBtn->setCallback([this,objs,chairslabel,scorelabel,n,folder]() {
+        testBtn->setCallback([this,objs,chairslabel,scorelabel,n_to_show,folder]() {
             // bool wasVisible = objs[0]->visible();
+            int n = n_to_show;
             for(size_t idx = 0; idx < n; idx++)
             {  
                 string objname = folder + "/"  + to_string(idx) + ".obj";
                 mCanvas->tempTest(objname);
+                // mCanvas->evolve(objname, 0, idx);
                 // mCanvas->writeObj(objname);
 
                 chairslabel->setVisible(true);
@@ -386,6 +425,39 @@ public:
                 });
             }
 
+            // if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
+            //     cout << "Successfully created depth map" << endl; 
+            //     // if(system("/usr/bin/python3 test.py ") == 0){
+            //     if (system("/opt/anaconda3/bin/python test.py") == 0) {
+            //         cout << "Successfully scored chairs" << endl; 
+            //     } else {
+            //         cout << "Error scoring chairs" << endl; 
+            //     }
+            // } else {
+            //     cout << "Error creating depth map" << endl; 
+            // }
+
+            performLayout();           
+        });  
+
+
+        // call back function for testBtn 
+        initBtn->setCallback([this,objs,chairslabel,scorelabel,n_to_show,folder]() {
+            // bool wasVisible = objs[0]->visible();
+            int n_to_make = mCanvas->mMixer.chairs.size();
+
+            for(size_t idx = 0; idx < n_to_make; idx++)
+            {  
+                string objname = folder + "/init-"  + to_string(idx) + ".obj";
+                mCanvas->initialize(objname, 0, idx);
+
+                chairslabel->setVisible(true);
+                scorelabel->setVisible(true);
+                if (idx < n_to_show) {
+                    objs[idx]->setVisible(true);
+                }
+            }
+
             if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
                 cout << "Successfully created depth map" << endl; 
                 // if(system("/usr/bin/python3 test.py ") == 0){
@@ -398,8 +470,64 @@ public:
                 cout << "Error creating depth map" << endl; 
             }
 
+            // get scores
+            vector<float> scores; 
+            ifstream file;
+            file.open("score.txt");
+            if (!file) {
+                cout << "Unable to open file";
+                exit(1); 
+            }
+            string line;
+            while (getline(file, line)) {
+                scores.push_back(strtof((line).c_str(),0));
+            }
+            file.close();
+            
+            // sort scores
+            vector<int> scores_idx(scores.size());
+            iota(scores_idx.begin(), scores_idx.end(), 0);
+            sort(scores_idx.begin(), scores_idx.end(),
+            [&scores](int i1, int i2) {return scores[i1] > scores[i2];});
+            
+            // for (auto i: scores_idx) {
+            //     cout << scores[i] << " - ";
+            // }
+            // cout << endl;
+
+            for (size_t idx = 0; idx < n_to_show; idx++) {
+                int which_score = scores_idx[idx];
+                float curr_score = scores[which_score];
+                string objname = folder + "/init-"  + to_string(which_score) + ".obj";
+                objs[idx]->setCallback([this, objname, scorelabel, curr_score] {
+                    ObjViewApp::fileName = objname;
+                    mCanvas->loadObj(fileName);
+                    scorelabel->setCaption("Score:  " + to_string(curr_score));
+                });
+            }
+
             performLayout();           
-        });            
+        }); 
+
+        // // call back function for leg  
+        // legBtn->setCallback([this,objs,chairslabel,scorelabel,n_to_show,folder]() {
+        //     // bool wasVisible = objs[0]->visible();
+        //     int n_to_make = 10;
+
+        //     for(size_t idx = 0; idx < n_to_make; idx++)
+        //     {  
+        //         string objname = folder + "/init-"  + to_string(idx) + ".obj";
+        //         mCanvas->evolve(objname, 0, idx);
+
+        //         chairslabel->setVisible(true);
+        //         scorelabel->setVisible(true);
+        //         if (idx < n_to_show) {
+        //             objs[idx]->setVisible(true);
+        //         }
+        //     }
+        // }
+
+
         
     	// Shading mode
         new Label(widgets, "Shading Mode", "sans-bold", 20);

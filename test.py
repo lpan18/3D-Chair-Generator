@@ -19,7 +19,7 @@ def test_net(net, model='epoch30.pth', data_root='./Rendered/', gpu=True):
 
     test_evaluations = []
 
-    softmax = nn.Softmax(dim=0)
+    softmax = nn.Softmax(dim=1)
 
     for v in view:
 
@@ -49,10 +49,10 @@ def test_net(net, model='epoch30.pth', data_root='./Rendered/', gpu=True):
                 # print(pred_torch.squeeze())
                 # print(softmax(pred_torch.squeeze()))
                 
-                probabilities = softmax(pred_torch.squeeze())[1]
+                probabilities = softmax(pred_torch).squeeze()[1]
                 # print(probabilities)
 
-                temp.append(probabilities)
+                temp.append(probabilities.detach().cpu().numpy())
 
         test_evaluations.append(temp)
 
