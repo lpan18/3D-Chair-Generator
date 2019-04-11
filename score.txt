@@ -1,10 +1,10 @@
-tensor(9.3761e-06, device='cuda:0')
-tensor(4.5737e-06, device='cuda:0')
-tensor(3.1441e-07, device='cuda:0')
-tensor(4.2159e-05, device='cuda:0')
-tensor(4.0473e-06, device='cuda:0')
-tensor(9.9523e-06, device='cuda:0')
-tensor(4.2926e-06, device='cuda:0')
-tensor(5.4400e-06, device='cuda:0')
-tensor(1.4624e-05, device='cuda:0')
-tensor(3.2138e-05, device='cuda:0')
+3.3566855e-06
+8.953501e-06
+5.9976014e-07
+3.0157804e-05
+2.8313325e-06
+6.217821e-06
+5.5338096e-06
+2.2916382e-05
+2.1196192e-06
+2.9478363e-06
