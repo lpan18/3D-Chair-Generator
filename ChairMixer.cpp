@@ -12,7 +12,6 @@ void ChairMixer::readFolder(string path) {
             if (!f->d_name || f->d_name[0] == '.') {
                 continue; // Skip everything that starts with a dot
             }
-            cout << f->d_name << endl; 
             ChairBuffer chair = ChairBuffer::readObjFile(path + "/" + f->d_name);
             chairs.push_back(chair);
         }

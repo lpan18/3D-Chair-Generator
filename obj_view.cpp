@@ -141,9 +141,8 @@ public:
     void loadObj(string fileName) {
         delete mMesh;
         mMesh = new Mesh(fileName);
-        positions = mMesh->getPositions();        
+        positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);
-        smoothNormals = mMesh->getSmoothNormals(&normals);
         colors = mMesh->getColors();
     }
 
@@ -157,7 +156,6 @@ public:
 
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);
-        smoothNormals = mMesh->getSmoothNormals(&normals);
         colors = mMesh->getColors();
     }
 
@@ -231,11 +229,10 @@ public:
 	    //refer to the previous explanation of mShader.bind();
         mShader.bind();
 
-        MatrixXf shadingNormal = (mShadingMode == 1 || mShadingMode == 4)  ? smoothNormals : normals;
 	    //dates the positions matrix,color and indices matrices
         mShader.uploadAttrib("vertexPosition_modelspace", positions);
         mShader.uploadAttrib("color", colors);
-	    mShader.uploadAttrib("vertexNormal_modelspace", shadingNormal);
+	    mShader.uploadAttrib("vertexNormal_modelspace", normals);
 
         //ModelMatrixID
         setRotation(mArcball.matrix());
@@ -246,16 +243,15 @@ public:
         glEnable(GL_PROGRAM_POINT_SIZE_EXT);
         glPointSize(5);
 
-        if (mShadingMode != 2 && mShadingMode != 5) {
+        if (mShadingMode != 1 && mShadingMode != 3) {
             mShader.drawArray(GL_TRIANGLES, 0, positions.cols() / 3);
         }
-        if (mShadingMode != 0 && mShadingMode != 1 && mShadingMode != 5) {
+        if (mShadingMode != 0 && mShadingMode != 3) {
             mShader.drawArray(GL_LINES, positions.cols() / 3, positions.cols() / 3 * 2);
             mShader.drawArray(GL_POINTS, positions.cols() / 3, positions.cols() / 3 * 2);
-
         }
-        // PointsCloud
-        if ( mShadingMode == 5){
+        // Point Cloud
+        if (mShadingMode == 3){
             mShader.drawArray(GL_POINTS, positions.cols() / 3, positions.cols() / 3 * 2);
         }
         glDisable(GL_DEPTH_TEST);
@@ -275,7 +271,6 @@ private:
     Mesh *mMesh = NULL;
     MatrixXf positions;
     MatrixXf normals;
-    MatrixXf smoothNormals;
     MatrixXf colors;
     int mShadingMode = 0;
 };
@@ -407,7 +402,7 @@ public:
         panelCombo->setLayout(new BoxLayout(Orientation::Horizontal,
                                        Alignment::Middle, 0, 2));
 
-        ComboBox *combo = new ComboBox(widgets, { "Flat", "Smooth", "Wireframe", "Flat+Wireframe", "Smooth+Wireframe", "PointsCloud"} );
+        ComboBox *combo = new ComboBox(widgets, { "Flat", "Wireframe", "Flat+Wireframe", "Point Cloud"} );
         combo->setCallback([&](int value) {
             mCanvas->setShadingMode(value);
         });
