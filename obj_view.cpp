@@ -384,8 +384,8 @@ public:
             // cout << entry.path() << endl;
             // n++;
         // }
-        if(n_to_show < 2) n_to_show = 2; // generate 5 objs in one test
-        for(size_t i = 0; i < n_to_show; i++){
+        if (n_to_show < 5) n_to_show = 5; // generate 5 objs in one test
+        for (size_t i = 0; i < n_to_show; i++) {
             Button *obj = new Button(widgets, "chair " + to_string(i) + ".obj");
             obj->setVisible(false);  
             objs.push_back(obj);  
@@ -443,12 +443,8 @@ public:
         // call back function for testBtn 
         // initBtn->setCallback([this, objs, chairslabel, scorelabel, n_to_show, &selected_idx, folder]() {
         initBtn->setCallback([&, objs, chairslabel, scorelabel, n_to_show, folder]() {
-            // bool wasVisible = objs[0]->visible();
-            if (system("exec rm -r ./Completion/*") == 0) {
-                cout << "Successfully emptied Completion" << endl; 
-            } else {
-                cout << "Error emptying Completion" << endl; 
-            }
+            emptyCompletion();
+            emptyRendered();
 
             int n_to_make = mCanvas->mMixer.chairs.size();
 
@@ -464,42 +460,19 @@ public:
                 }
             }
 
-            // if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
-            //     cout << "Successfully created depth map" << endl; 
-            //     // if(system("/usr/bin/python3 test.py ") == 0){
-            //     if (system("/opt/anaconda3/bin/python test.py") == 0) {
-            //         cout << "Successfully scored chairs" << endl; 
-            //     } else {
-            //         cout << "Error scoring chairs" << endl; 
-            //     }
-            // } else {
-            //     cout << "Error creating depth map" << endl; 
-            // }
+            createDepthMapAndScore();
 
             // get scores
             vector<float> scores; 
-            ifstream file;
-            file.open("score.txt");
-            if (!file) {
-                cout << "Unable to open file";
-                exit(1); 
-            }
-            string line;
-            while (getline(file, line)) {
-                scores.push_back(strtof((line).c_str(),0));
-            }
-            file.close();
-            
-            // sort scores
+            loadScores(scores);
             vector<int> scores_idx(scores.size());
-            iota(scores_idx.begin(), scores_idx.end(), 0);
-            sort(scores_idx.begin(), scores_idx.end(),
-            [&scores](int i1, int i2) {return scores[i1] > scores[i2];});
+            sortScores(scores, scores_idx);
 
+            // show models according to score
             selected_idx.clear();
             for (size_t idx = 0; idx < n_to_show; idx++) {
                 int which_score = scores_idx[idx];
-                    cout << selected_idx.size() << endl;
+                cout << "n " << idx << " to show | which score" << which_score << endl;
                 float curr_score = scores[which_score];
                 selected_idx.push_back(which_score);
 
@@ -516,11 +489,8 @@ public:
 
         // call back function for leg  
         legBtn->setCallback([&, objs, chairslabel, scorelabel, n_to_show, folder]() {
-            if (system("exec rm -r ./Completion/*") == 0) {
-                cout << "Successfully emptied Completion" << endl; 
-            } else {
-                cout << "Error emptying Completion" << endl; 
-            }
+            emptyCompletion();
+            emptyRendered();
 
             int n_to_make = mCanvas->mMixer.chairs.size() * n_to_show;
 
@@ -529,44 +499,21 @@ public:
                 mCanvas->evolve(objname, 1, idx, selected_idx);
             }
 
-            if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
-                cout << "Successfully created depth map" << endl; 
-                // if(system("/usr/bin/python3 test.py ") == 0){
-                if (system("/opt/anaconda3/bin/python test.py") == 0) {
-                    cout << "Successfully scored chairs" << endl; 
-                } else {
-                    cout << "Error scoring chairs" << endl; 
-                }
-            } else {
-                cout << "Error creating depth map" << endl; 
-            }
+            createDepthMapAndScore();
 
-            // get scores
+            // load and sort scores
             vector<float> scores; 
-            ifstream file;
-            file.open("score.txt");
-            if (!file) {
-                cout << "Unable to open file";
-                exit(1); 
-            }
-            string line;
-            while (getline(file, line)) {
-                scores.push_back(strtof((line).c_str(),0));
-            }
-            file.close();
-
-            // sort scores
+            loadScores(scores);
             vector<int> scores_idx(scores.size());
-            iota(scores_idx.begin(), scores_idx.end(), 0);
-            sort(scores_idx.begin(), scores_idx.end(),
-            [&scores](int i1, int i2) {return scores[i1] > scores[i2];});
+            sortScores(scores, scores_idx);
 
+            // show models according to score
             selected_idx.clear();
             for (size_t idx = 0; idx < n_to_show; idx++) {
                 int which_score = scores_idx[idx];
-                    cout << selected_idx.size() << endl;
                 float curr_score = scores[which_score];
-                selected_idx.push_back(which_score);
+                cout << "n " << idx << " to show | which score" << which_score << endl;
+                ObjViewApp::selected_idx.push_back(which_score);
 
                 string objname = folder + "/leg-"  + to_string(which_score) + ".obj";
                 objs[idx]->setCallback([this, objname, scorelabel, curr_score] {
@@ -614,6 +561,56 @@ public:
     virtual void draw(NVGcontext *ctx) {
         /* Draw the user interface */
         Screen::draw(ctx);
+    }
+
+    void emptyCompletion() {
+        if (system("exec rm -r ./Completion/*") == 0) {
+            cout << "Successfully emptied Completion" << endl; 
+        } else {
+            cout << "Error emptying Completion" << endl; 
+        }
+    }
+
+    void emptyRendered() {
+        if (system("exec rm -r ./Rendered/*") == 0) {
+            cout << "Successfully emptied Rendered" << endl; 
+        } else {
+            cout << "Error emptying Rendered" << endl; 
+        }
+    }
+
+    void createDepthMapAndScore() {
+        if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
+            cout << "Successfully created depth map" << endl; 
+            // if(system("/usr/bin/python3 test.py ") == 0){
+            if (system("/opt/anaconda3/bin/python test.py") == 0) {
+                cout << "Successfully scored chairs" << endl; 
+            } else {
+                cout << "Error scoring chairs" << endl; 
+            }
+        } else {
+            cout << "Error creating depth map" << endl; 
+        }
+    }
+
+    void loadScores(vector<float>& scores) {
+        ifstream file;
+        file.open("score.txt");
+        if (!file) {
+            cout << "Unable to open file";
+            exit(1); 
+        }
+        string line;
+        while (getline(file, line)) {
+            scores.push_back(strtof((line).c_str(),0));
+        }
+        file.close();
+    }
+
+    void sortScores(vector<float>& scores, vector<int>& scores_idx) {
+        iota(scores_idx.begin(), scores_idx.end(), 0);
+        sort(scores_idx.begin(), scores_idx.end(),
+        [&scores](int i1, int i2) {return scores[i1] > scores[i2];});
     }
 
 private:
