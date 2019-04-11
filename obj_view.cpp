@@ -568,7 +568,7 @@ public:
                 float curr_score = scores[which_score];
                 selected_idx.push_back(which_score);
 
-                string objname = folder + "/init-"  + to_string(which_score) + ".obj";
+                string objname = folder + "/leg-"  + to_string(which_score) + ".obj";
                 objs[idx]->setCallback([this, objname, scorelabel, curr_score] {
                     ObjViewApp::fileName = objname;
                     mCanvas->loadObj(fileName);

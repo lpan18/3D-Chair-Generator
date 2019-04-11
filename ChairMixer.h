@@ -43,7 +43,7 @@ public:
     // Evolve Method
     ObjBuffer evolve(int level, int idx, vector<int> selected_idx) {
         for (int i = 0; i < selected_idx.size(); i++) {
-            record(i, 0) = selected_idx[i];
+            record(i, level - 1) = selected_idx[i];
         }
 
         int which_record = int(idx / chairs.size()); 
@@ -60,6 +60,16 @@ public:
             leg_id = which_origin;
             arm_id = record(which_record, 0);
             back_id = record(which_record, 0);
+        } else if (level == 2){ // arm
+            seat_id = record(which_record, 0);
+            leg_id = record(which_record, 1);
+            arm_id = which_origin;
+            back_id = record(which_record, 0);
+        } else if (level == 3) {
+            seat_id = record(which_record, 0);
+            leg_id = record(which_record, 1);
+            arm_id = record(which_record, 2);
+            back_id = which_origin;
         } 
 
         ChairBuffer chair1 = chairs[seat_id];
