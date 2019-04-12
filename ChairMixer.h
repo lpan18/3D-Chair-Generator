@@ -68,6 +68,8 @@ public:
             back_id = which_origin;
         } 
 
+        cout << "seat - " << seat_id << " | leg - " << leg_id << " | arm - " << arm_id <<" | back - " << back_id << endl;
+
         ChairBuffer chair1 = chairs[seat_id];
         ChairBuffer chair2 = chairs[leg_id];
         ChairBuffer chair3 = chairs[back_id];
@@ -78,9 +80,17 @@ public:
 
     // Record Method
     void updateRecord(int level, vector<int> selected_idx) {
-        printIntVector(selected_idx, "in dot h");
+        MatrixXi temp = record;
+        
         for (int i = 0; i < selected_idx.size(); i++) {
-            record(i, level) = selected_idx[i];
+            int which_record = int(selected_idx[i] / chairs.size()); 
+            int which_origin = selected_idx[i] % chairs.size(); 
+
+            for (int j = 0; j < level; j++) {
+                record(i, j) = temp(which_record, j);
+            }
+
+            record(i, level) = which_origin;
         }
 
         cout << "=== Record ===" << endl;

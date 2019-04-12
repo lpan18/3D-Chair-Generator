@@ -129,8 +129,8 @@ def compress(filepath):
 
 filenames = []
 imagenames = []
-source_path = "/home/jza238/CMPT764/chair-modeling/Completion"
-target_path = "/home/jza238/CMPT764/chair-modeling/Rendered"
+source_path = "/home/lpa25/Documents/chair-modeling/Completion"
+target_path = "/home/lpa25/Documents/chair-modeling/Rendered"
 # source_path = "/media/lei/XIAO/Project/chair-modeling/Completion"
 # target_path = "/media/lei/XIAO/Project/chair-modeling/Rendered"
 

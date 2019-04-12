@@ -168,9 +168,9 @@ public:
         mMesh = new Mesh(mixed);
         mMesh->writeObjFromMesh(fileName);
 
-        positions = mMesh->getPositions();
-        normals = mMesh->getNormals(&positions);
-        colors = mMesh->getColors();
+        // positions = mMesh->getPositions();
+        // normals = mMesh->getNormals(&positions);
+        // colors = mMesh->getColors();
     }
 
     // Evolve method
@@ -181,9 +181,9 @@ public:
         mMesh = new Mesh(mixed);
         mMesh->writeObjFromMesh(fileName);
 
-        positions = mMesh->getPositions();
-        normals = mMesh->getNormals(&positions);
-        colors = mMesh->getColors();
+        // positions = mMesh->getPositions();
+        // normals = mMesh->getNormals(&positions);
+        // colors = mMesh->getColors();
     }
 
     void writeObj(string fileName) {
@@ -505,6 +505,91 @@ public:
             performLayout();
         }); 
 
+        // call back function for arm  
+        armBtn->setCallback([&, objs, chairslabel, scorelabel, n_to_show, folder]() {
+            emptyCompletion();
+            emptyRendered();
+
+            int n_to_make = mCanvas->mMixer.chairs.size() * n_to_show;
+
+            for(size_t idx = 0; idx < n_to_make; idx++) {  
+                string objname = folder + "/arm-"  + to_string(idx) + ".obj";
+                mCanvas->evolve(objname, 2, idx);
+            }
+
+            createDepthMapAndScore();
+
+            // load and sort scores
+            vector<float> scores; 
+            loadScores(scores);
+            vector<int> scores_idx(scores.size());
+            sortScores(scores, scores_idx);
+
+            // show models according to score
+            for (size_t idx = 0; idx < n_to_show; idx++) {
+                int which_score = scores_idx[idx];
+                float curr_score = scores[which_score];
+                ObjViewApp::selected_idx.push_back(which_score);
+                cout << "n " << idx << " to show | which score " << which_score << endl;
+
+                string objname = folder + "/arm-"  + to_string(which_score) + ".obj";
+                objs[idx]->setCallback([this, objname, scorelabel, curr_score] {
+                    ObjViewApp::fileName = objname;
+                    mCanvas->loadObj(fileName);
+                    scorelabel->setCaption("Score:  " + to_string(curr_score));
+                });
+            }
+
+            // record the selections
+            mCanvas->mMixer.updateRecord(2, ObjViewApp::selected_idx);
+            ObjViewApp::selected_idx.clear();
+
+            performLayout();
+        }); 
+
+
+        // call back function for arm  
+        backBtn->setCallback([&, objs, chairslabel, scorelabel, n_to_show, folder]() {
+            emptyCompletion();
+            emptyRendered();
+
+            int n_to_make = mCanvas->mMixer.chairs.size() * n_to_show;
+
+            for(size_t idx = 0; idx < n_to_make; idx++) {  
+                string objname = folder + "/back-"  + to_string(idx) + ".obj";
+                mCanvas->evolve(objname, 3, idx);
+            }
+
+            createDepthMapAndScore();
+
+            // load and sort scores
+            vector<float> scores; 
+            loadScores(scores);
+            vector<int> scores_idx(scores.size());
+            sortScores(scores, scores_idx);
+
+            // show models according to score
+            for (size_t idx = 0; idx < n_to_show; idx++) {
+                int which_score = scores_idx[idx];
+                float curr_score = scores[which_score];
+                ObjViewApp::selected_idx.push_back(which_score);
+                cout << "n " << idx << " to show | which score " << which_score << endl;
+
+                string objname = folder + "/back-"  + to_string(which_score) + ".obj";
+                objs[idx]->setCallback([this, objname, scorelabel, curr_score] {
+                    ObjViewApp::fileName = objname;
+                    mCanvas->loadObj(fileName);
+                    scorelabel->setCaption("Score:  " + to_string(curr_score));
+                });
+            }
+
+            // record the selections
+            mCanvas->mMixer.updateRecord(3, ObjViewApp::selected_idx);
+            ObjViewApp::selected_idx.clear();
+
+            performLayout();
+        }); 
+
 
         
     	// Shading mode
@@ -615,6 +700,16 @@ private:
 };
 
 int main(int /* argc */, char ** /* argv */) {
+
+    MatrixXi a;
+    a = MatrixXi::Zero(3, 3);
+    a << 1, 2, 3,
+        4, 5, 6,
+        7, 8, 2;
+    MatrixXi b = a;
+    a(2, 2) = 9;
+    cout << b<< endl;
+    cout << a<< endl;
 
     try {
         srand (56843658);
