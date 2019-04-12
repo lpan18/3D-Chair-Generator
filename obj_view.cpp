@@ -387,6 +387,9 @@ public:
         // call back function for testBtn 
         testBtn->setCallback([this, objs, chairslabel, scorelabel, n_to_show, folder]() {
             // bool wasVisible = objs[0]->visible();
+            emptyCompletion();
+            emptyRendered();
+            
             for(size_t idx = 0; idx < n_to_show; idx++)
             {  
                 string objname = folder + "/"  + to_string(idx) + ".obj";
