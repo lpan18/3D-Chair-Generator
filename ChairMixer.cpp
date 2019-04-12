@@ -14,7 +14,6 @@ void ChairMixer::readFolder(string path) {
             if (!f->d_name || f->d_name[0] == '.') {
                 continue; // Skip everything that starts with a dot
             }
-
             ChairBuffer chair = ChairBuffer::readObjFile(path + "/" + f->d_name);
             chairs.push_back(chair);
         }
@@ -63,8 +62,8 @@ void ChairMixer::transformLeg(ChairPartBuffer& seat, ChairPartBuffer& leg) {
     float legDistFrontBack = abs(leg.partFeatures.topRightBack.y() - leg.partFeatures.topRightFront.y());
     float legDistLeftRight = abs(leg.partFeatures.topRightBack.x() - leg.partFeatures.topLeftBack.x());
 
-    if (legDistFrontBack / seat.origSeatFeatures.depth < LEG_DIST_THLD) {
-        if (legDistLeftRight / seat.origSeatFeatures.width < LEG_DIST_THLD) {
+    if (legDistFrontBack / seat.origSeatFeatures.depth < DIST_THLD) {
+        if (legDistLeftRight / seat.origSeatFeatures.width < DIST_THLD) {
             // In this case, the legs are considered as one whole entity.
             Vector3f pb(leg.bound.getCenter().x(), leg.bound.getCenter().y(), leg.bound.minZ);
             Vector3f p0 = leg.partFeatures.topRightBack;
@@ -92,7 +91,7 @@ void ChairMixer::transformLeg(ChairPartBuffer& seat, ChairPartBuffer& leg) {
         Vector3f q1 = seat.getClosestPointTo(q0);
         leg.transformDouleXSym(pb, p0, p1, q0, q1);
     }
-    
+
     leg.resetBound();
     leg.resetPartFeatures();
 }
@@ -103,7 +102,7 @@ void ChairMixer::transformBack(ChairPartBuffer& seat, ChairPartBuffer& back) {
     scale << backScale, 0, 0,
             0, backScale, 0,
             0, 0, backScale;
-    
+
     for (int i = 0; i < back.nVertices; i++) {
         back.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, back.vertices[i], back.origSeatFeatures.backTopCenter, seat.origSeatFeatures.backTopCenter);
     }
@@ -111,10 +110,19 @@ void ChairMixer::transformBack(ChairPartBuffer& seat, ChairPartBuffer& back) {
     back.resetBound();
     back.resetPartFeatures();
 
-    Vector3f pb(back.bound.getCenter().x(), back.bound.getCenter().y(), back.bound.getCenter().z());
-    Vector3f p0 = back.partFeatures.bottomRightBack;
-    Vector3f p1 = seat.getClosestPointTo(p0);
-    back.transformSingleXSym(pb, p0, p1);
+    float backDistLeftRight = abs(back.partFeatures.bottomRightBack.x() - back.partFeatures.bottomLeftBack.x());
+
+    if (backDistLeftRight / seat.origSeatFeatures.width < DIST_THLD) {
+        Vector3f pb(back.bound.getCenter().x(), back.bound.getCenter().y(), back.bound.getCenter().z());
+        Vector3f p0 = back.partFeatures.bottomRightBack;
+        Vector3f p1 = seat.getClosestPointTo(p0);
+        back.transformSingle(pb, p0, p1);
+    } else {
+        Vector3f pb(back.bound.getCenter().x(), back.bound.getCenter().y(), back.bound.getCenter().z());
+        Vector3f p0 = back.partFeatures.bottomRightBack;
+        Vector3f p1 = seat.getClosestPointTo(p0);
+        back.transformSingleXSym(pb, p0, p1);
+    }
 }
 
 void ChairMixer::transformArm(ChairPartBuffer& seat, ChairPartBuffer& back, ChairPartBuffer& arm) {
@@ -125,7 +133,7 @@ void ChairMixer::transformArm(ChairPartBuffer& seat, ChairPartBuffer& back, Chai
     scale << armScaleX, 0, 0,
             0, armScaleY, 0,
             0, 0, armScaleZ;
-    
+
     for (int i = 0; i < arm.nVertices; i++) {
         arm.vertices[i] = ChairPartOrigSeatFeatures::transform(scale, arm.vertices[i], arm.origSeatFeatures.topCenter, seat.origSeatFeatures.topCenter);
     }

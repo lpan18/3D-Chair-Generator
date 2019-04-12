@@ -29,8 +29,8 @@ public:
     };
 
     // Initialize Method
-    ObjBuffer initialize(int idx) {
-        record.resize(2, 4);
+    ObjBuffer initialize(int idx, int n_to_show) {
+        record = MatrixXi::Zero(n_to_show, 4);
 
         ChairBuffer chair1 = chairs[idx];
         ChairBuffer chair2 = chairs[idx];
@@ -41,15 +41,11 @@ public:
     }
 
     // Evolve Method
-    ObjBuffer evolve(int level, int idx, vector<int> selected_idx) {
-        for (int i = 0; i < selected_idx.size(); i++) {
-            record(i, level - 1) = selected_idx[i];
-        }
-
+    ObjBuffer evolve(int level, int idx) {
         int which_record = int(idx / chairs.size()); 
         int which_origin = idx % chairs.size(); 
         
-        cout << idx << " | fixed seed - " << which_origin << " | changed seed - " << which_record << endl;
+        cout << idx << " | changed seed - " << which_origin << " | fixed seed idx - " << which_record << " | fixed seed - " << record(which_record, 0) << endl;
         int seat_id = rand() % chairs.size();
         int leg_id = rand() % chairs.size();
         int back_id = rand() % chairs.size();
@@ -78,6 +74,16 @@ public:
         ChairBuffer chair4 = chairs[arm_id];
 
         return mix(chair1.seat, chair2.leg, chair3.back, chair4.arm);
+    }
+
+    // Record Method
+    void updateRecord(int level, vector<int> selected_idx) {
+        for (int i = 0; i < selected_idx.size(); i++) {
+            record(i, level - 1) = selected_idx[i];
+        }
+
+        cout << "=== Record ===" << endl;
+        cout << record << endl;
     }
 
 private:

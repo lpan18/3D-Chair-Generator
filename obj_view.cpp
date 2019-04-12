@@ -142,9 +142,8 @@ public:
     void loadObj(string fileName) {
         delete mMesh;
         mMesh = new Mesh(fileName);
-        positions = mMesh->getPositions();        
+        positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);
-        smoothNormals = mMesh->getSmoothNormals(&normals);
         colors = mMesh->getColors();
     }
 
@@ -158,13 +157,12 @@ public:
 
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);
-        smoothNormals = mMesh->getSmoothNormals(&normals);
         colors = mMesh->getColors();
     }
 
     // Initialize method
-    void initialize(string fileName, int idx) {
-        ObjBuffer mixed = mMixer.initialize(idx);
+    void initialize(string fileName, int idx, int n_to_show) {
+        ObjBuffer mixed = mMixer.initialize(idx, n_to_show);
 
         delete mMesh;
         mMesh = new Mesh(mixed);
@@ -172,13 +170,12 @@ public:
 
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);
-        smoothNormals = mMesh->getSmoothNormals(&normals);
         colors = mMesh->getColors();
     }
 
     // Evolve method
-    void evolve(string fileName, int level, int idx, vector<int> selected_idx) {
-        ObjBuffer mixed = mMixer.evolve(level, idx, selected_idx);
+    void evolve(string fileName, int level, int idx) {
+        ObjBuffer mixed = mMixer.evolve(level, idx);
 
         delete mMesh;
         mMesh = new Mesh(mixed);
@@ -186,7 +183,6 @@ public:
 
         positions = mMesh->getPositions();
         normals = mMesh->getNormals(&positions);
-        smoothNormals = mMesh->getSmoothNormals(&normals);
         colors = mMesh->getColors();
     }
 
@@ -260,11 +256,10 @@ public:
 	    //refer to the previous explanation of mShader.bind();
         mShader.bind();
 
-        MatrixXf shadingNormal = (mShadingMode == 1 || mShadingMode == 4)  ? smoothNormals : normals;
 	    //dates the positions matrix,color and indices matrices
         mShader.uploadAttrib("vertexPosition_modelspace", positions);
         mShader.uploadAttrib("color", colors);
-	    mShader.uploadAttrib("vertexNormal_modelspace", shadingNormal);
+	    mShader.uploadAttrib("vertexNormal_modelspace", normals);
 
         //ModelMatrixID
         setRotation(mArcball.matrix());
@@ -275,16 +270,15 @@ public:
         glEnable(GL_PROGRAM_POINT_SIZE_EXT);
         glPointSize(5);
 
-        if (mShadingMode != 2 && mShadingMode != 5) {
+        if (mShadingMode != 1 && mShadingMode != 3) {
             mShader.drawArray(GL_TRIANGLES, 0, positions.cols() / 3);
         }
-        if (mShadingMode != 0 && mShadingMode != 1 && mShadingMode != 5) {
+        if (mShadingMode != 0 && mShadingMode != 3) {
             mShader.drawArray(GL_LINES, positions.cols() / 3, positions.cols() / 3 * 2);
             mShader.drawArray(GL_POINTS, positions.cols() / 3, positions.cols() / 3 * 2);
-
         }
-        // PointsCloud
-        if ( mShadingMode == 5){
+        // Point Cloud
+        if (mShadingMode == 3){
             mShader.drawArray(GL_POINTS, positions.cols() / 3, positions.cols() / 3 * 2);
         }
         glDisable(GL_DEPTH_TEST);
@@ -306,7 +300,6 @@ private:
     Mesh *mMesh = NULL;
     MatrixXf positions;
     MatrixXf normals;
-    MatrixXf smoothNormals;
     MatrixXf colors;
     int mShadingMode = 0;
 };
@@ -392,14 +385,12 @@ public:
         }  
         
         // call back function for testBtn 
-        testBtn->setCallback([this,objs,chairslabel,scorelabel,n_to_show,folder]() {
+        testBtn->setCallback([this, objs, chairslabel, scorelabel, n_to_show, folder]() {
             // bool wasVisible = objs[0]->visible();
-            int n = n_to_show;
-            for(size_t idx = 0; idx < n; idx++)
+            for(size_t idx = 0; idx < n_to_show; idx++)
             {  
                 string objname = folder + "/"  + to_string(idx) + ".obj";
                 mCanvas->tempTest(objname);
-                // mCanvas->writeObj(objname);
 
                 chairslabel->setVisible(true);
                 scorelabel->setVisible(true);
@@ -409,33 +400,12 @@ public:
                     ObjViewApp::fileName = objname;
                     mCanvas->loadObj(fileName);
                     vector<float> scores; 
-                    ifstream file;
-                    file.open("score.txt");
-                    if (!file) {
-                        cout << "Unable to open file";
-                        exit(1); 
-                    }
-                    string line;
-                    while (getline(file, line)) {
-                        scores.push_back(strtof((line).c_str(),0));
-                    }
-                    file.close();
+                    loadScores(scores);
                     scorelabel->setCaption("Score:  " + to_string(scores[idx]));
                 });
             }
 
-            // if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
-            //     cout << "Successfully created depth map" << endl; 
-            //     // if(system("/usr/bin/python3 test.py ") == 0){
-            //     if (system("/opt/anaconda3/bin/python test.py") == 0) {
-            //         cout << "Successfully scored chairs" << endl; 
-            //     } else {
-            //         cout << "Error scoring chairs" << endl; 
-            //     }
-            // } else {
-            //     cout << "Error creating depth map" << endl; 
-            // }
-
+            createDepthMapAndScore();
             performLayout();           
         });  
 
@@ -451,7 +421,7 @@ public:
             for(size_t idx = 0; idx < n_to_make; idx++)
             {  
                 string objname = folder + "/init-"  + to_string(idx) + ".obj";
-                mCanvas->initialize(objname, idx);
+                mCanvas->initialize(objname, idx, n_to_show);
 
                 chairslabel->setVisible(true);
                 scorelabel->setVisible(true);
@@ -469,12 +439,11 @@ public:
             sortScores(scores, scores_idx);
 
             // show models according to score
-            selected_idx.clear();
             for (size_t idx = 0; idx < n_to_show; idx++) {
                 int which_score = scores_idx[idx];
-                cout << "n " << idx << " to show | which score" << which_score << endl;
                 float curr_score = scores[which_score];
                 selected_idx.push_back(which_score);
+                cout << "n " << idx << " to show | which score" << which_score << endl;
 
                 string objname = folder + "/init-"  + to_string(which_score) + ".obj";
                 objs[idx]->setCallback([this, objname, scorelabel, curr_score] {
@@ -483,6 +452,10 @@ public:
                     scorelabel->setCaption("Score:  " + to_string(curr_score));
                 });
             }
+
+            // record the selections
+            mCanvas->mMixer.updateRecord(0, selected_idx);
+            selected_idx.clear();
 
             performLayout();           
         }); 
@@ -496,7 +469,7 @@ public:
 
             for(size_t idx = 0; idx < n_to_make; idx++) {  
                 string objname = folder + "/leg-"  + to_string(idx) + ".obj";
-                mCanvas->evolve(objname, 1, idx, selected_idx);
+                mCanvas->evolve(objname, 1, idx);
             }
 
             createDepthMapAndScore();
@@ -508,12 +481,11 @@ public:
             sortScores(scores, scores_idx);
 
             // show models according to score
-            selected_idx.clear();
             for (size_t idx = 0; idx < n_to_show; idx++) {
                 int which_score = scores_idx[idx];
                 float curr_score = scores[which_score];
-                cout << "n " << idx << " to show | which score" << which_score << endl;
                 ObjViewApp::selected_idx.push_back(which_score);
+                cout << "n " << idx << " to show | which score " << which_score << endl;
 
                 string objname = folder + "/leg-"  + to_string(which_score) + ".obj";
                 objs[idx]->setCallback([this, objname, scorelabel, curr_score] {
@@ -522,6 +494,10 @@ public:
                     scorelabel->setCaption("Score:  " + to_string(curr_score));
                 });
             }
+
+            // record the selections
+            mCanvas->mMixer.updateRecord(0, selected_idx);
+            selected_idx.clear();
 
             performLayout();
         }); 
@@ -534,7 +510,7 @@ public:
         panelCombo->setLayout(new BoxLayout(Orientation::Horizontal,
                                        Alignment::Middle, 0, 2));
 
-        ComboBox *combo = new ComboBox(widgets, { "Flat", "Smooth", "Wireframe", "Flat+Wireframe", "Smooth+Wireframe", "PointsCloud"} );
+        ComboBox *combo = new ComboBox(widgets, { "Flat", "Wireframe", "Flat+Wireframe", "Point Cloud"} );
         combo->setCallback([&](int value) {
             mCanvas->setShadingMode(value);
         });
@@ -611,6 +587,22 @@ public:
         iota(scores_idx.begin(), scores_idx.end(), 0);
         sort(scores_idx.begin(), scores_idx.end(),
         [&scores](int i1, int i2) {return scores[i1] > scores[i2];});
+    }
+
+    void printIntVector(vector<int> v, string name) {
+        cout << name << " -";
+        for (auto i : v) {
+            cout << " " << i;
+        }
+        cout << endl;
+    }
+
+    void printFloatVector(vector<float> v, string name) {
+        cout << name << " -";
+        for (auto i : v) {
+            cout << " " << i;
+        }
+        cout << endl;
     }
 
 private:
