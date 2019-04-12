@@ -52,7 +52,10 @@ ObjBuffer ObjBuffer::readObjFile(string filename) {
 				fi++;
 			} else if (line.rfind("# Starting mesh", 0) == 0) {
 				ObjGroup group;
-				group.name = line.substr(16, line.size() - 17);
+				istringstream iss(line);
+				string temp, name;
+				iss >> temp >> temp >> temp >> name;
+				group.name = name;
 				transform(group.name.begin(), group.name.end(), group.name.begin(), ::tolower);
 				group.vStart = vi;
 				buffer.groups.push_back(group);
