@@ -442,7 +442,7 @@ public:
             for (size_t idx = 0; idx < n_to_show; idx++) {
                 int which_score = scores_idx[idx];
                 float curr_score = scores[which_score];
-                selected_idx.push_back(which_score);
+                ObjViewApp::selected_idx.push_back(which_score);
                 cout << "n " << idx << " to show | which score" << which_score << endl;
 
                 string objname = folder + "/init-"  + to_string(which_score) + ".obj";
@@ -454,8 +454,8 @@ public:
             }
 
             // record the selections
-            mCanvas->mMixer.updateRecord(0, selected_idx);
-            selected_idx.clear();
+            mCanvas->mMixer.updateRecord(0, ObjViewApp::selected_idx);
+            ObjViewApp::selected_idx.clear();
 
             performLayout();           
         }); 
@@ -496,8 +496,8 @@ public:
             }
 
             // record the selections
-            mCanvas->mMixer.updateRecord(0, selected_idx);
-            selected_idx.clear();
+            mCanvas->mMixer.updateRecord(1, ObjViewApp::selected_idx);
+            ObjViewApp::selected_idx.clear();
 
             performLayout();
         }); 

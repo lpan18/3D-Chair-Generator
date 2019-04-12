@@ -78,12 +78,21 @@ public:
 
     // Record Method
     void updateRecord(int level, vector<int> selected_idx) {
+        printIntVector(selected_idx, "in dot h");
         for (int i = 0; i < selected_idx.size(); i++) {
-            record(i, level - 1) = selected_idx[i];
+            record(i, level) = selected_idx[i];
         }
 
         cout << "=== Record ===" << endl;
         cout << record << endl;
+    }
+
+    void printIntVector(vector<int> v, string name) {
+        cout << name << " -";
+        for (auto i : v) {
+            cout << " " << i;
+        }
+        cout << endl;
     }
 
 private:
