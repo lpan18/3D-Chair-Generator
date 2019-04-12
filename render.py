@@ -129,10 +129,10 @@ def compress(filepath):
 
 filenames = []
 imagenames = []
-# source_path = "/Users/trailingend/Documents/SFU/CMPT764/chair-modeling/ChairModelsLegOffset"
-# target_path = "/Users/trailingend/Documents/SFU/CMPT764/chair-modeling/ChairImagesLegOffset"
-source_path = "/media/lei/XIAO/Project/chair-modeling/Completion"
-target_path = "/media/lei/XIAO/Project/chair-modeling/Rendered"
+source_path = "/home/jza238/CMPT764/chair-modeling/Completion"
+target_path = "/home/jza238/CMPT764/chair-modeling/Rendered"
+# source_path = "/media/lei/XIAO/Project/chair-modeling/Completion"
+# target_path = "/media/lei/XIAO/Project/chair-modeling/Rendered"
 
 for root, dirs, files in os.walk(source_path):
     for file in files:

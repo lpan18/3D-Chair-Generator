@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <algorithm>
+#include <random>
 #include <dirent.h>
 #include "ChairMixer.h"
 

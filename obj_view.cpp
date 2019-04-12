@@ -42,6 +42,7 @@
 
 // Includes for the GLTexture class.
 #include <algorithm>
+#include <numeric>      // std::iota
 #include <cstdint>
 #include <memory>
 #include <utility>
@@ -159,6 +160,32 @@ public:
         colors = mMesh->getColors();
     }
 
+    // Initialize method
+    void initialize(string fileName, int idx, int n_to_show) {
+        ObjBuffer mixed = mMixer.initialize(idx, n_to_show);
+
+        delete mMesh;
+        mMesh = new Mesh(mixed);
+        mMesh->writeObjFromMesh(fileName);
+
+        positions = mMesh->getPositions();
+        normals = mMesh->getNormals(&positions);
+        colors = mMesh->getColors();
+    }
+
+    // Evolve method
+    void evolve(string fileName, int level, int idx) {
+        ObjBuffer mixed = mMixer.evolve(level, idx);
+
+        delete mMesh;
+        mMesh = new Mesh(mixed);
+        mMesh->writeObjFromMesh(fileName);
+
+        positions = mMesh->getPositions();
+        normals = mMesh->getNormals(&positions);
+        colors = mMesh->getColors();
+    }
+
     void writeObj(string fileName) {
         if (mMesh != NULL) {
             mMesh->writeObj(fileName);
@@ -259,6 +286,9 @@ public:
 
     }
 
+public: 
+    ChairMixer mMixer;
+
 //Instantiation of the variables that can be acessed outside of this class to interact with the interface
 //Need to be updated if a interface element is interacting with something that is inside the scope of MyGLCanvas
 private:
@@ -267,7 +297,6 @@ private:
     Eigen::Vector3f mZoom;
     Eigen::Vector3f mTranslation;
     nanogui::Arcball mArcball;
-    ChairMixer mMixer;
     Mesh *mMesh = NULL;
     MatrixXf positions;
     MatrixXf normals;
@@ -315,6 +344,12 @@ public:
         // Test button
         Button *testBtn = new Button(widgets, "Test");
 
+        // Evolve buttons
+        Button *initBtn = new Button(widgets, "Initialize");
+        Button *legBtn = new Button(widgets, "Swap Legs");
+        Button *armBtn = new Button(widgets, "Swap Arms");
+        Button *backBtn = new Button(widgets, "Swap Back");
+
         Label *chairslabel = new Label(widgets, "Chair Models", "sans-bold", 20);
         Label *scorelabel = new Label(widgets, "Score:  ", "sans-bold", 20);
         chairslabel->setVisible(false);
@@ -336,27 +371,26 @@ public:
             }
         }
 
-        size_t n = 0; 
+        size_t n_to_show = 0; 
         // count existing files in folder
         // for (const auto & entry : experimental::filesystem::directory_iterator(folder)){
             // cout << entry.path() << endl;
             // n++;
         // }
-        if(n < 10) n = 10; // generate 5 objs in one test
-        for(size_t i = 0; i < n; i++){
+        if (n_to_show < 5) n_to_show = 5; // generate 5 objs in one test
+        for (size_t i = 0; i < n_to_show; i++) {
             Button *obj = new Button(widgets, "chair " + to_string(i) + ".obj");
             obj->setVisible(false);  
             objs.push_back(obj);  
         }  
         
         // call back function for testBtn 
-        testBtn->setCallback([this,objs,chairslabel,scorelabel,n,folder]() {
+        testBtn->setCallback([this, objs, chairslabel, scorelabel, n_to_show, folder]() {
             // bool wasVisible = objs[0]->visible();
-            for(size_t idx = 0; idx < n; idx++)
+            for(size_t idx = 0; idx < n_to_show; idx++)
             {  
                 string objname = folder + "/"  + to_string(idx) + ".obj";
                 mCanvas->tempTest(objname);
-                // mCanvas->writeObj(objname);
 
                 chairslabel->setVisible(true);
                 scorelabel->setVisible(true);
@@ -366,35 +400,109 @@ public:
                     ObjViewApp::fileName = objname;
                     mCanvas->loadObj(fileName);
                     vector<float> scores; 
-                    ifstream file;
-                    file.open("score.txt");
-                    if (!file) {
-                        cout << "Unable to open file";
-                        exit(1); 
-                    }
-                    string line;
-                    while (getline(file, line)) {
-                        scores.push_back(strtof((line).c_str(),0));
-                    }
-                    file.close();
+                    loadScores(scores);
                     scorelabel->setCaption("Score:  " + to_string(scores[idx]));
                 });
             }
 
-            // if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
-            //     cout << "Successfully created depth map" << endl; 
-            //     if(system("/usr/bin/python3 test.py ") == 0){
-            //     // if (system("/opt/anaconda3/bin/python test.py") == 0) {
-            //         cout << "Successfully scored chairs" << endl; 
-            //     } else {
-            //         cout << "Error scoring chairs" << endl; 
-            //     }
-            // } else {
-            //     cout << "Error creating depth map" << endl; 
-            // }
+            createDepthMapAndScore();
+            performLayout();           
+        });  
+
+
+        // call back function for testBtn 
+        // initBtn->setCallback([this, objs, chairslabel, scorelabel, n_to_show, &selected_idx, folder]() {
+        initBtn->setCallback([&, objs, chairslabel, scorelabel, n_to_show, folder]() {
+            emptyCompletion();
+            emptyRendered();
+
+            int n_to_make = mCanvas->mMixer.chairs.size();
+
+            for(size_t idx = 0; idx < n_to_make; idx++)
+            {  
+                string objname = folder + "/init-"  + to_string(idx) + ".obj";
+                mCanvas->initialize(objname, idx, n_to_show);
+
+                chairslabel->setVisible(true);
+                scorelabel->setVisible(true);
+                if (idx < n_to_show) {
+                    objs[idx]->setVisible(true);
+                }
+            }
+
+            createDepthMapAndScore();
+
+            // get scores
+            vector<float> scores; 
+            loadScores(scores);
+            vector<int> scores_idx(scores.size());
+            sortScores(scores, scores_idx);
+
+            // show models according to score
+            for (size_t idx = 0; idx < n_to_show; idx++) {
+                int which_score = scores_idx[idx];
+                float curr_score = scores[which_score];
+                ObjViewApp::selected_idx.push_back(which_score);
+                cout << "n " << idx << " to show | which score" << which_score << endl;
+
+                string objname = folder + "/init-"  + to_string(which_score) + ".obj";
+                objs[idx]->setCallback([this, objname, scorelabel, curr_score] {
+                    ObjViewApp::fileName = objname;
+                    mCanvas->loadObj(fileName);
+                    scorelabel->setCaption("Score:  " + to_string(curr_score));
+                });
+            }
+
+            // record the selections
+            mCanvas->mMixer.updateRecord(0, ObjViewApp::selected_idx);
+            ObjViewApp::selected_idx.clear();
 
             performLayout();           
-        });            
+        }); 
+
+        // call back function for leg  
+        legBtn->setCallback([&, objs, chairslabel, scorelabel, n_to_show, folder]() {
+            emptyCompletion();
+            emptyRendered();
+
+            int n_to_make = mCanvas->mMixer.chairs.size() * n_to_show;
+
+            for(size_t idx = 0; idx < n_to_make; idx++) {  
+                string objname = folder + "/leg-"  + to_string(idx) + ".obj";
+                mCanvas->evolve(objname, 1, idx);
+            }
+
+            createDepthMapAndScore();
+
+            // load and sort scores
+            vector<float> scores; 
+            loadScores(scores);
+            vector<int> scores_idx(scores.size());
+            sortScores(scores, scores_idx);
+
+            // show models according to score
+            for (size_t idx = 0; idx < n_to_show; idx++) {
+                int which_score = scores_idx[idx];
+                float curr_score = scores[which_score];
+                ObjViewApp::selected_idx.push_back(which_score);
+                cout << "n " << idx << " to show | which score " << which_score << endl;
+
+                string objname = folder + "/leg-"  + to_string(which_score) + ".obj";
+                objs[idx]->setCallback([this, objname, scorelabel, curr_score] {
+                    ObjViewApp::fileName = objname;
+                    mCanvas->loadObj(fileName);
+                    scorelabel->setCaption("Score:  " + to_string(curr_score));
+                });
+            }
+
+            // record the selections
+            mCanvas->mMixer.updateRecord(1, ObjViewApp::selected_idx);
+            ObjViewApp::selected_idx.clear();
+
+            performLayout();
+        }); 
+
+
         
     	// Shading mode
         new Label(widgets, "Shading Mode", "sans-bold", 20);
@@ -431,8 +539,75 @@ public:
         Screen::draw(ctx);
     }
 
+    void emptyCompletion() {
+        if (system("exec rm -r ./Completion/*") == 0) {
+            cout << "Successfully emptied Completion" << endl; 
+        } else {
+            cout << "Error emptying Completion" << endl; 
+        }
+    }
+
+    void emptyRendered() {
+        if (system("exec rm -r ./Rendered/*") == 0) {
+            cout << "Successfully emptied Rendered" << endl; 
+        } else {
+            cout << "Error emptying Rendered" << endl; 
+        }
+    }
+
+    void createDepthMapAndScore() {
+        if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
+            cout << "Successfully created depth map" << endl; 
+            // if(system("/usr/bin/python3 test.py ") == 0){
+            if (system("/opt/anaconda3/bin/python test.py") == 0) {
+                cout << "Successfully scored chairs" << endl; 
+            } else {
+                cout << "Error scoring chairs" << endl; 
+            }
+        } else {
+            cout << "Error creating depth map" << endl; 
+        }
+    }
+
+    void loadScores(vector<float>& scores) {
+        ifstream file;
+        file.open("score.txt");
+        if (!file) {
+            cout << "Unable to open file";
+            exit(1); 
+        }
+        string line;
+        while (getline(file, line)) {
+            scores.push_back(strtof((line).c_str(),0));
+        }
+        file.close();
+    }
+
+    void sortScores(vector<float>& scores, vector<int>& scores_idx) {
+        iota(scores_idx.begin(), scores_idx.end(), 0);
+        sort(scores_idx.begin(), scores_idx.end(),
+        [&scores](int i1, int i2) {return scores[i1] > scores[i2];});
+    }
+
+    void printIntVector(vector<int> v, string name) {
+        cout << name << " -";
+        for (auto i : v) {
+            cout << " " << i;
+        }
+        cout << endl;
+    }
+
+    void printFloatVector(vector<float> v, string name) {
+        cout << name << " -";
+        for (auto i : v) {
+            cout << " " << i;
+        }
+        cout << endl;
+    }
+
 private:
     MyGLCanvas *mCanvas;
+    vector<int> selected_idx;
     string fileName;
 };
 
