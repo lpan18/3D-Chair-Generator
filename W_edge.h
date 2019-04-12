@@ -28,6 +28,7 @@ struct W_edge
 
 struct Vertex
 {
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	Vector3f p;
 	W_edge *edge;
 	// Used in decimation
@@ -42,6 +43,7 @@ struct Vertex
 
 struct Face
 {
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	W_edge *edge;
 
 	vector<W_edge*> getW_edges();

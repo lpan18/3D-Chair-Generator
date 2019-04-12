@@ -1,0 +1,5 @@
+C:\Project\A2\A2\Completion\0.2048.ply
+C:\Project\A2\A2\Completion\1.2048.ply
+C:\Project\A2\A2\Completion\2.2048.ply
+C:\Project\A2\A2\Completion\3.2048.ply
+C:\Project\A2\A2\Completion\4.2048.ply

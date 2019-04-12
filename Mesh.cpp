@@ -1,5 +1,5 @@
 #include <algorithm>
-#include <bits/stdc++.h>
+// #include <bits/stdc++.h>
 #include <iostream>
 #include <cmath>
 #include <fstream>
@@ -82,7 +82,7 @@ MatrixXf Mesh::getSmoothNormals(MatrixXf* normals) {
 MatrixXf Mesh::getColors() {
 	MatrixXf colors = MatrixXf(3, mFaces * 9);
 	for (int i = 0; i < mFaces * 3; i++) {
-		colors.col(i) << 1, 0, 0;
+		colors.col(i) << 240.0/255.0, 102.0/255.0, 153.0/255.0;
 	}
 	for (int i = mFaces * 3; i < mFaces * 9; i++) {
 		colors.col(i) << 0, 0, 0;

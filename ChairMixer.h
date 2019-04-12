@@ -31,7 +31,6 @@ public:
     // Initialize Method
     ObjBuffer initialize(int idx, int n_to_show) {
         record = MatrixXi::Zero(n_to_show, 4);
-
         ChairBuffer chair1 = chairs[idx];
         ChairBuffer chair2 = chairs[idx];
         ChairBuffer chair3 = chairs[idx];
@@ -45,7 +44,7 @@ public:
         int which_record = int(idx / chairs.size()); 
         int which_origin = idx % chairs.size(); 
         
-        cout << idx << " | changed seed - " << which_origin << " | fixed seed idx - " << which_record << " | fixed seed - " << record(which_record, 0) << endl;
+        //cout << idx << " | changed seed - " << which_origin << " | fixed seed idx - " << which_record << " | fixed seed - " << record(which_record, 0) << endl;
         int seat_id = rand() % chairs.size();
         int leg_id = rand() % chairs.size();
         int back_id = rand() % chairs.size();
@@ -68,7 +67,7 @@ public:
             back_id = which_origin;
         } 
 
-        cout << "seat - " << seat_id << " | leg - " << leg_id << " | arm - " << arm_id <<" | back - " << back_id << endl;
+        //cout << "seat - " << seat_id << " | leg - " << leg_id << " | arm - " << arm_id <<" | back - " << back_id << endl;
 
         ChairBuffer chair1 = chairs[seat_id];
         ChairBuffer chair2 = chairs[leg_id];

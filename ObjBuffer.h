@@ -15,6 +15,7 @@ using Eigen::MatrixXf;
 #define OBJBUFFER_H
 
 struct ObjBound {
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	float maxX;
 	float maxY;
 	float maxZ;
@@ -53,6 +54,7 @@ struct ObjGroup {
 
 // An in-memory representation of obj file
 struct ObjBuffer {
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	int nVertices;
 	int mFaces;
 	Vector3f* vertices;
@@ -79,6 +81,7 @@ struct ObjBuffer {
 };
 
 struct ChairPartOrigSeatFeatures {
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	Vector3f backTopCenter;
 	Vector3f topCenter;
 	Vector3f bottomCenter;
@@ -90,6 +93,7 @@ struct ChairPartOrigSeatFeatures {
 };
 
 struct ChairPartFeatures {
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	Vector3f topRightBack;
 	Vector3f topRightFront;
 	Vector3f topLeftFront;
@@ -102,6 +106,7 @@ struct ChairPartFeatures {
 };
 
 struct ChairPartBuffer : ObjBuffer {
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
 	ChairPartOrigSeatFeatures origSeatFeatures;
 	ChairPartFeatures partFeatures;
 

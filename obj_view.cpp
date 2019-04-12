@@ -7,6 +7,12 @@
     BSD-style license that can be found in the LICENSE.txt file.
 */
 
+////// add while windows//////////
+#define _CRT_SECURE_NO_DEPRECATE
+
+#include <GL/glew.h>
+///////////////////////////////
+
 #include <nanogui/opengl.h>
 #include <nanogui/glutil.h>
 #include <nanogui/screen.h>
@@ -38,6 +44,7 @@
 #include <fstream>
 #include <stdio.h>
 #include <sys/stat.h>
+#include <filesystem>
 
 
 // Includes for the GLTexture class.
@@ -107,12 +114,12 @@ public:
 
         //ProjectionMatrixID
         float fovy = 90.0f, aspect = 1.0f;
-        float near = 0.1f, far = 100.0f;
-        float top = near * tan(fovy * M_PI / 360);
+        float near_ = 0.1f, far_ = 100.0f;
+        float top = near_ * tan(fovy * PI / 360);
         float bottom = -top;
         float right = top * aspect;
         float left = -right;
-        Matrix4f P = frustum(left, right, bottom, top, near, far);
+        Matrix4f P = frustum(left, right, bottom, top, near_, far_);
 
         mShader.setUniform("P", P);
 
@@ -125,7 +132,7 @@ public:
 
         // This the light origin position in your environment, which is totally arbitrary
         // however it is better if it is behind the observer
-        mShader.setUniform("LightPosition_worldspace", Vector3f(2,-6,-4));
+		mShader.setUniform("LightPosition_worldspace", Vector3f(2,6,4)); //2,-6,-4
 
         string path = "ChairModels";
         mMixer.readFolder(path);
@@ -314,6 +321,17 @@ public:
         window->setPosition(Vector2i(15, 15));
         window->setLayout(new GroupLayout());
 
+		///////////////// add while windows ///////////////////
+		glewExperimental = GL_TRUE;
+		GLenum err = glewInit();
+
+		if (GLEW_OK != err)
+		{
+			/* Problem: glewInit failed, something is seriously wrong. */
+			fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+		}
+		///////////////////////////////////////////////////
+
 	    // OpenGL canvas initialization
         mCanvas = new MyGLCanvas(window);
         mCanvas->setBackgroundColor({100, 100, 100, 255});
@@ -342,7 +360,7 @@ public:
         });
 
         // Test button
-        Button *testBtn = new Button(widgets, "Test");
+        Button *testBtn = new Button(widgets, "Evolve");
 
         // Evolve buttons
         Button *initBtn = new Button(widgets, "Initialize");
@@ -361,7 +379,7 @@ public:
         // create output directory 
         string folder = "Completion"; 
         struct stat sb;
-        if (!(stat(folder.c_str(), &sb) == 0 && S_ISDIR(sb.st_mode)))
+        if (!(stat(folder.c_str(), &sb) == 0)) // && S_ISDIR(sb.st_mode)
         {
             const int dir_err = system("mkdir -p Completion");
             if (-1 == dir_err)
@@ -628,7 +646,7 @@ public:
     }
 
     void emptyCompletion() {
-        if (system("exec rm -r ./Completion/*") == 0) {
+		if (system("del /q C:\\Project\\A2\\A2\\Completion\\*") == 0) { //system("exec rm -r ./Completion/*") 
             cout << "Successfully emptied Completion" << endl; 
         } else {
             cout << "Error emptying Completion" << endl; 
@@ -636,7 +654,7 @@ public:
     }
 
     void emptyRendered() {
-        if (system("exec rm -r ./Rendered/*") == 0) {
+        if (system("del /q C:\\Project\\A2\\A2\\Rendered\\*") == 0) { //system("exec rm -r ./Rendered/*")
             cout << "Successfully emptied Rendered" << endl; 
         } else {
             cout << "Error emptying Rendered" << endl; 
@@ -644,17 +662,33 @@ public:
     }
 
     void createDepthMapAndScore() {
-        if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
-            cout << "Successfully created depth map" << endl; 
-            // if(system("/usr/bin/python3 test.py ") == 0){
-            if (system("/opt/anaconda3/bin/python test.py") == 0) {
-                cout << "Successfully scored chairs" << endl; 
-            } else {
-                cout << "Error scoring chairs" << endl; 
-            }
-        } else {
-            cout << "Error creating depth map" << endl; 
-        }
+
+		if (system("D:/ProgramData/Anaconda3/python get_eval_list.py") == 0) {
+			cout << "Successfully created test list" << endl;
+			// if(system("/usr/bin/python3 test.py ") == 0){
+			if (system("D:/ProgramData/Anaconda3/python evaluate.py") == 0) {
+				cout << "Successfully scored chairs" << endl;
+			}
+			else {
+				cout << "Error scoring chairs" << endl;
+			}
+		}
+		else {
+			cout << "Error creating test list" << endl;
+		}
+
+
+        //if (system("/usr/bin/blender example.blend --background --python render.py") == 0) {
+        //    cout << "Successfully created depth map" << endl; 
+        //    // if(system("/usr/bin/python3 test.py ") == 0){
+        //    if (system("/opt/anaconda3/bin/python test.py") == 0) {
+        //        cout << "Successfully scored chairs" << endl; 
+        //    } else {
+        //        cout << "Error scoring chairs" << endl; 
+        //    }
+        //} else {
+        //    cout << "Error creating depth map" << endl; 
+        //}
     }
 
     void loadScores(vector<float>& scores) {
@@ -700,16 +734,6 @@ private:
 };
 
 int main(int /* argc */, char ** /* argv */) {
-
-    MatrixXi a;
-    a = MatrixXi::Zero(3, 3);
-    a << 1, 2, 3,
-        4, 5, 6,
-        7, 8, 2;
-    MatrixXi b = a;
-    a(2, 2) = 9;
-    cout << b<< endl;
-    cout << a<< endl;
 
     try {
         srand (56843658);

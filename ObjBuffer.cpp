@@ -207,19 +207,20 @@ Vector3f ObjBuffer::getClosestPointTo(Vector3f p) {
 			pc = vertices[i];
 		}
 	}
-
-	for (int i = 0; i < mFaces; i++) {
-		Vector3i f = faces[i];
-		Vector3f vt0 = vertices[f[0] - 1];
-		Vector3f vt1 = vertices[f[1] - 1];
-		Vector3f vt2 = vertices[f[2] - 1];	
-		Vector3f vt_center = (vt0 + vt1 + vt2) / 3.0f;			
-		float dist_center = getDist(vt_center, p);
-		if (dist_center < minDistQuad) {
-			minDistQuad = dist_center;
-			pc = vt_center;
-		}
-	}
+	//cout << "size" << vertices->size() << endl;
+	//for (int i = 0; i < mFaces; i++) {
+	//	Vector3i f = faces[i];
+	//	//cout << f[0] - 1 << endl;
+	//	Vector3f vt0 = vertices[f[0] - 1];
+	//	Vector3f vt1 = vertices[f[1] - 1];
+	//	Vector3f vt2 = vertices[f[2] - 1];
+	//	Vector3f vt_center = (vt0 + vt1 + vt2) / 3.0f;			
+	//	float dist_center = getDist(vt_center, p);
+	//	if (dist_center < minDistQuad) {
+	//		minDistQuad = dist_center;
+	//		pc = vt_center;
+	//	}
+	//}
 	return pc;
 }
 

@@ -32,7 +32,6 @@
 *.out
 *.app
 
-__pycache__/
 lib
 CMakeFiles/
 testfiles/
