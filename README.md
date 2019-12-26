@@ -1,5 +1,4 @@
-# chair-modeling
-mix-n-match modeling of chairs
+# 3D-Chair-Generator
 
 `blender example.blend --background --python render.py`
 
